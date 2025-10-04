@@ -1,0 +1,7 @@
+{
+  "name": "Book Me App",
+  "description": "A comprehensive talent booking platform for the South African market, connecting independent professionals (talent) with clients for events, weddings, corporate functions, and personal occasions.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
