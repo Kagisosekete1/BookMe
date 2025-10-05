@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getTalentById, findOrCreateConversationByTalentId, getPostsByTalentId, getTalentByPost, addCommentToPost, TALENTS, USERS, toggleCommentLike } from '../../data/mockData';

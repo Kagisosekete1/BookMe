@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { POSTS, getTalentByPost, addCommentToPost, TALENTS, toggleCommentLike } from '../../data/mockData';
 import { Post, User, Comment as CommentType } from '../../types';
@@ -59,11 +60,12 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ post, currentUser, onClos
     };
     
     return (
-        <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-start pt-28 z-50" onClick={onClose}>
-            <div className="bg-white dark:bg-gray-900 rounded-b-2xl shadow-xl w-full max-h-[75%] flex flex-col" onClick={(e) => e.stopPropagation()}>
-                <div className="text-center py-3 border-b border-gray-200 dark:border-gray-700 relative">
+        <div className="absolute inset-0 flex flex-col justify-end z-50">
+            <div className="absolute inset-0 bg-black bg-opacity-60 animate-fade-in-backdrop" onClick={onClose}></div>
+            <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl w-full max-h-[75%] flex flex-col animate-slide-up" onClick={(e) => e.stopPropagation()}>
+                <div className="text-center py-3 border-b border-gray-200 dark:border-gray-700 relative shrink-0">
                     <h3 className="text-lg font-bold">Comments</h3>
-                    <button onClick={onClose} className="absolute top-2 right-4 text-2xl">&times;</button>
+                    <button onClick={onClose} className="absolute top-1/2 -translate-y-1/2 right-4 text-2xl w-8 h-8 flex items-center justify-center">&times;</button>
                 </div>
                 <div className="flex-grow overflow-y-auto p-4 space-y-4">
                     {post.comments.map(comment => {
@@ -191,6 +193,33 @@ const HomeView: React.FC<HomeViewProps> = ({ currentUser }) => {
     const [activeCommentsPost, setActiveCommentsPost] = useState<Post | null>(null);
     const [viewerImageUrl, setViewerImageUrl] = useState<string | null>(null);
     const [reportPost, setReportPost] = useState<Post | null>(null);
+    const scrollRef = useRef<HTMLDivElement>(null);
+
+    // --- Scroll Position Persistence ---
+    useEffect(() => {
+        const handleScroll = () => {
+            if (scrollRef.current) {
+                sessionStorage.setItem('homeScrollPos', String(scrollRef.current.scrollTop));
+            }
+        };
+
+        const scrollEl = scrollRef.current;
+        scrollEl?.addEventListener('scroll', handleScroll);
+
+        return () => {
+            scrollEl?.removeEventListener('scroll', handleScroll);
+        };
+    }, []);
+
+    useEffect(() => {
+        if (scrollRef.current) {
+            const savedPos = sessionStorage.getItem('homeScrollPos');
+            if (savedPos) {
+                scrollRef.current.scrollTop = Number(savedPos);
+            }
+        }
+    }, []);
+
 
     const handleAddComment = (text: string) => {
         if (!activeCommentsPost) return;
@@ -221,16 +250,18 @@ const HomeView: React.FC<HomeViewProps> = ({ currentUser }) => {
     };
 
     return (
-        <div className="h-full overflow-y-auto relative">
-            {/* Posts Feed */}
-            {POSTS.flatMap((post, index) => {
-                const content = [<PostCard key={post.id} post={post} onOpenComments={setActiveCommentsPost} onReport={() => setReportPost(post)} />];
-                // Show an ad after every 4th post for free users
-                if (!currentUser.isPremium && (index + 1) % 4 === 0) {
-                    content.push(<AdCard key={`ad-${index}`} />);
-                }
-                return content;
-            })}
+        <div className="h-full relative">
+            <div ref={scrollRef} className="h-full overflow-y-auto">
+                {/* Posts Feed */}
+                {POSTS.flatMap((post, index) => {
+                    const content = [<PostCard key={post.id} post={post} onOpenComments={setActiveCommentsPost} onReport={() => setReportPost(post)} />];
+                    // Show an ad after every 4th post for free users
+                    if (!currentUser.isPremium && (index + 1) % 4 === 0) {
+                        content.push(<AdCard key={`ad-${index}`} />);
+                    }
+                    return content;
+                })}
+            </div>
 
             {activeCommentsPost && (
                 <CommentsModal 

@@ -1,3 +1,4 @@
+
 export enum UserRole {
   Talent = "Talent",
   Client = "Client",
@@ -88,6 +89,7 @@ export interface User {
   verificationTier?: 'gold' | 'blue';
   phoneNumber?: string;
   isPremium?: boolean;
+  subscriptionEndDate?: string; 
 }
 
 export interface LoginSession {

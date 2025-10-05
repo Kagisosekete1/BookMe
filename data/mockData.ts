@@ -1,9 +1,17 @@
+
 import { Talent, Post, Reel, Conversation, Message, User, UserRole, Comment, LoginSession, Transaction, Job } from '../types';
 
 const getVerificationTier = (rating: number): 'gold' | 'blue' | undefined => {
   if (rating >= 4.8) return 'gold';
   if (rating >= 3.5) return 'blue';
   return undefined;
+};
+
+// Helper to get a future date string
+const getFutureDate = (days: number): string => {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+  return date.toISOString();
 };
 
 
@@ -904,6 +912,7 @@ export let USERS: User[] = [
         verificationTier: 'gold',
         phoneNumber: '+27821234567',
         isPremium: true,
+        subscriptionEndDate: getFutureDate(27), // Expires in 27 days
     },
     { 
         id: 'client-sarah-p',
@@ -950,6 +959,7 @@ export let USERS: User[] = [
         profileImage: 'https://picsum.photos/seed/corporateinc/200', bio: 'Professional event management.', postsCount: 0, followersCount: 150, followingCount: 80,
         verificationTier: 'gold',
         isPremium: true,
+        subscriptionEndDate: getFutureDate(2), // Expires in 2 days to test notification
     },
      ...Array.from({ length: 15 }, (_, i) => ({
         id: `client-new-${i}`,

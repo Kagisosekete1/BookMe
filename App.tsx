@@ -1,5 +1,4 @@
 
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { UserRole, User, ThemeAccent } from './types';
@@ -158,7 +157,7 @@ const App: React.FC = () => {
                             <Route path="reels" element={<ReelsView currentUser={currentUser} />} />
                             <Route path="profile" element={<ProfileView currentUser={currentUser} onUpdateProfile={handleUpdateProfile} />} />
                             <Route path="settings" element={<SettingsView onLogout={handleLogout} />} />
-                            <Route path="settings/:pageId" element={<SettingsSubPageView user={currentUser} onUpdateProfile={handleUpdateProfile} theme={theme} onSetTheme={handleSetTheme} themeAccent={themeAccent} onSetThemeAccent={handleSetThemeAccent} />} />
+                            <Route path="settings/:pageId" element={<SettingsSubPageView user={currentUser} onUpdateProfile={handleUpdateProfile} onLogout={handleLogout} />} />
                             <Route path="messages" element={<MessagesView />} />
                         </Route>
                         

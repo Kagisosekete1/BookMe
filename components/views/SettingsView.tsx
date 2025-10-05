@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -49,14 +50,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onLogout }) => {
                 </SettingsSection>
 
                 <SettingsSection title="Preferences">
-                    <SettingsItem 
-                        onClick={() => navigate('/settings/appearance')}
-                        icon="fa-palette" 
-                        title="Appearance" 
-                        subtitle="Dark Mode, Theme Color"
-                        isFirst
-                    />
-                    <SettingsItem onClick={() => navigate('/settings/notifications')} icon="fa-bell" title="Notifications" />
+                    <SettingsItem onClick={() => navigate('/settings/notifications')} icon="fa-bell" title="Notifications" isFirst />
                     <SettingsItem onClick={() => navigate('/settings/location')} icon="fa-map-marker-alt" title="Location" subtitle="Manage your location settings." isLast />
                 </SettingsSection>
                 

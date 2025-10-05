@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom';
 import { User } from '../../types';
 import BottomNav from './BottomNav';
@@ -115,7 +116,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentUser, onLogout }) => {
     const handleToggleNotifications = () => {
         setShowNotifications(prev => !prev);
     };
-
+    
+    // --- UI State Logic ---
     const isSettingsPage = location.pathname === '/settings';
     const isSettingsSubPage = /^\/settings\/.+/.test(location.pathname);
 
@@ -129,7 +131,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentUser, onLogout }) => {
     return (
         <div className="flex flex-col h-full">
             {!hideTopBar && <TopBar onBack={showBackButton ? () => navigate(-1) : undefined} onToggleNotifications={handleToggleNotifications} />}
-            <main className="flex-grow overflow-y-auto relative" style={{ height: hideTopBar ? 'calc(100% - 4rem)' : undefined }}>
+            <main
+                className="flex-grow overflow-y-auto relative"
+                style={{ height: hideTopBar ? 'calc(100% - 4rem)' : undefined }}
+            >
                 <Outlet />
                 {showNotifications && <NotificationPanel onClose={() => setShowNotifications(false)} />}
             </main>

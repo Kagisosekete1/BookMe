@@ -175,6 +175,22 @@
     .animate-slide-in-from-right {
         animation: slide-in-from-right 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
     }
+
+    /* Comments Modal Animation */
+    @keyframes slide-up {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    .animate-slide-up {
+      animation: slide-up 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+    }
+    @keyframes fade-in-backdrop {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    .animate-fade-in-backdrop {
+        animation: fade-in-backdrop 0.3s ease-out forwards;
+    }
 </style>
 </head>
   <body class="bg-gray-200 dark:bg-gray-900">
