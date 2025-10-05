@@ -45,6 +45,7 @@ const TermsOfUseModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
                     <li>Create profiles as Service Providers (artists, DJs, caterers, stylists, etc.) or Clients (those looking to book someone).</li>
                     <li>Share images, videos, posts, and reels.</li>
                     <li>Manage and receive bookings directly through the App.</li>
+                    <li>Choose between Free (Ad-supported) or Premium (Ad-free) membership options.</li>
                 </ul>
                 <p>These Terms govern your use of all services, features, and content offered through the App.</p>
 
@@ -80,27 +81,46 @@ const TermsOfUseModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
                     <li>Service Providers are solely responsible for the accuracy of their listings, pricing, and availability.</li>
                     <li>Clients are responsible for verifying the credentials and reliability of Service Providers before booking.</li>
                 </ul>
+
+                <h5 className="font-bold text-black dark:text-white pt-2">6. Free and Premium Memberships</h5>
+                <p>Book Me App offers two types of user accounts:</p>
+                <h6 className="font-semibold text-black dark:text-white pl-2">6.1 Free Users</h6>
+                <ul className="list-disc list-inside space-y-1 pl-4">
+                    <li>Access all standard features of the App.</li>
+                    <li>Experience in-app advertisements displayed during use.</li>
+                    <li>May view sponsored content or partner promotions.</li>
+                </ul>
+
+                <h6 className="font-semibold text-black dark:text-white pl-2">6.2 Premium Users</h6>
+                 <ul className="list-disc list-inside space-y-1 pl-4">
+                    <li>Subscribe for R150 per month to enjoy an ad-free experience.</li>
+                    <li>Premium users receive a special Gold Verification Tick, similar to Instagram’s verified badge but in gold, displayed on their profile to signify professional status.</li>
+                    <li>Subscriptions can be managed in the Settings section under “Upgrade to Premium.”</li>
+                    <li>Subscriptions automatically renew monthly unless canceled through your App Store or payment settings.</li>
+                    <li>Fees are non-refundable except as required by law.</li>
+                    <li>Book Me App reserves the right to adjust pricing or benefits for Premium accounts with prior notice.</li>
+                </ul>
                 
-                <h5 className="font-bold text-black dark:text-white pt-2">6. Content Ownership</h5>
+                <h5 className="font-bold text-black dark:text-white pt-2">7. Content Ownership</h5>
                  <p>You retain ownership of the content you post, but by uploading it, you grant Book Me App a non-exclusive, worldwide, royalty-free license to display, promote, and distribute your content within the App and its marketing materials.</p>
                  <p>You may delete your content at any time.</p>
 
-                <h5 className="font-bold text-black dark:text-white pt-2">7. Reporting, Blocking, and Safety</h5>
+                <h5 className="font-bold text-black dark:text-white pt-2">8. Reporting, Blocking, and Safety</h5>
                 <p>Users may report or block others for inappropriate behavior, scams, or misuse.</p>
                 <p>Book Me App reserves the right to investigate and take action, including removal or suspension of accounts.</p>
                 <p>However, we do not guarantee that all reported content will be immediately reviewed or removed.</p>
 
-                <h5 className="font-bold text-black dark:text-white pt-2">8. Privacy</h5>
+                <h5 className="font-bold text-black dark:text-white pt-2">9. Privacy</h5>
                 <p>Your privacy is important to us. Our data collection, use, and protection practices are outlined in our Privacy Policy (available on <a href="http://www.se-mogroup.com" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-color)] underline">www.se-mogroup.com</a>).</p>
 
-                <h5 className="font-bold text-black dark:text-white pt-2">9. Reels and Media Content</h5>
+                <h5 className="font-bold text-black dark:text-white pt-2">10. Reels and Media Content</h5>
                 <p>Users may upload videos (“Reels”) and photos to showcase their work or services. You are fully responsible for the content shared and must ensure it complies with our community guidelines and all applicable laws.</p>
                 <p>We reserve the right to remove any content violating these Terms.</p>
 
-                <h5 className="font-bold text-black dark:text-white pt-2">10. Intellectual Property</h5>
+                <h5 className="font-bold text-black dark:text-white pt-2">11. Intellectual Property</h5>
                 <p>All content, logos, trademarks, and software associated with Book Me App remain the property of SE-MO Group (Pty) Ltd. Unauthorized use, copying, or redistribution is strictly prohibited.</p>
 
-                <h5 className="font-bold text-black dark:text-white pt-2">11. Termination</h5>
+                <h5 className="font-bold text-black dark:text-white pt-2">12. Termination</h5>
                 <p>We may suspend or terminate your access to the App if:</p>
                 <ul className="list-disc list-inside space-y-1 pl-4">
                     <li>You violate these Terms.</li>
@@ -109,7 +129,7 @@ const TermsOfUseModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
                 </ul>
                 <p>You may delete your account at any time by contacting us at <a href="mailto:info@se-mogroup.com" className="text-[var(--accent-color)] underline">info@se-mogroup.com</a>.</p>
 
-                <h5 className="font-bold text-black dark:text-white pt-2">12. Disclaimer of Warranties</h5>
+                <h5 className="font-bold text-black dark:text-white pt-2">13. Disclaimer of Warranties</h5>
                 <p>Book Me App is provided “as is” and “as available.” We make no warranties or guarantees about:</p>
                  <ul className="list-disc list-inside space-y-1 pl-4">
                     <li>The accuracy or availability of any service listings.</li>
@@ -118,13 +138,13 @@ const TermsOfUseModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
                 </ul>
                 <p>You use the App at your own risk.</p>
 
-                <h5 className="font-bold text-black dark:text-white pt-2">13. Limitation of Liability</h5>
+                <h5 className="font-bold text-black dark:text-white pt-2">14. Limitation of Liability</h5>
                 <p>SE-MO Group and its affiliates are not liable for any indirect, incidental, special, or consequential damages arising from your use of Book Me App, including loss of data, revenue, or reputation.</p>
 
-                <h5 className="font-bold text-black dark:text-white pt-2">14. Changes to Terms</h5>
+                <h5 className="font-bold text-black dark:text-white pt-2">15. Changes to Terms</h5>
                 <p>We may update these Terms periodically. Continued use of the App after any changes constitutes your acceptance of the revised Terms.</p>
 
-                <h5 className="font-bold text-black dark:text-white pt-2">15. Contact Us</h5>
+                <h5 className="font-bold text-black dark:text-white pt-2">16. Contact Us</h5>
                 <p>For any questions or concerns regarding these Terms, please contact us at:</p>
                 <p>📧 <a href="mailto:info@se-mogroup.com" className="text-[var(--accent-color)] underline">info@se-mogroup.com</a></p>
                 <p>🌐 <a href="http://www.se-mogroup.com" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-color)] underline">www.se-mogroup.com</a></p>
