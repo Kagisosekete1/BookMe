@@ -36,7 +36,7 @@ const TalentCard: React.FC<{ talent: Talent }> = ({ talent }) => {
     // In a real app, you would fetch the full user object to check `isPremium`.
     // Here, we'll just use the talent object's properties for the verification icon.
     return (
-        <Link to={`/talent/${talent.id}`} className="block bg-white dark:bg-gray-900 p-4 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200">
+        <Link to={`/talent/${talent.id}`} className="block bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200">
             <div className="flex items-center">
                 <img src={talent.profileImage} alt={talent.name} className="w-16 h-16 rounded-full mr-4" />
                 <div className="flex-1">
@@ -60,7 +60,7 @@ const JobCard: React.FC<{ job: Job }> = ({ job }) => {
     if (!client) return null;
 
     return (
-        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-md">
+        <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow-sm">
             <h3 className="font-bold text-lg">{job.title}</h3>
             <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1 mb-2">
                 <span className="flex items-center">{client.name} {getVerificationIcon(client)}</span>

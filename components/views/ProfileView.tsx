@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { User, Post, Reel, UserRole, Comment as CommentType } from '../../types';
 import { getPostsByTalentId, getReelsByTalentId, getTalentById, addCommentToPost, getTalentByPost, TALENTS } from '../../data/mockData';
@@ -56,6 +56,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, currentUser, on
     const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(post.likes);
     const [newComment, setNewComment] = useState('');
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const handleAddComment = () => {
         if (!newComment.trim()) return;
@@ -85,11 +86,17 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, currentUser, on
             )}
 
             <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-md max-h-[90%] flex flex-col m-4 relative" onClick={(e) => e.stopPropagation()}>
-                <div className="flex items-center p-3 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center p-3 border-b border-gray-200 dark:border-gray-700 relative">
                     <img src={talent.profileImage} alt={talent.name} className="w-10 h-10 rounded-full mr-3" />
                     <p className="font-bold flex-grow">{talent.name}</p>
-                    <button onClick={onReport} className="text-gray-500 dark:text-gray-400 w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"><i className="fas fa-ellipsis-h"></i></button>
+                     <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-500 dark:text-gray-400 w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"><i className="fas fa-ellipsis-h"></i></button>
                     <button onClick={onClose} className="text-2xl ml-2">&times;</button>
+                     {isMenuOpen && (
+                        <div className="absolute top-14 right-4 bg-white dark:bg-gray-800 rounded-lg shadow-lg w-40 border border-gray-100 dark:border-gray-700 z-20">
+                            <button onClick={() => { onReport(); setIsMenuOpen(false); }} className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-t-lg"><i className="fas fa-flag w-6"></i>Report Post</button>
+                            <button onClick={() => setIsMenuOpen(false)} className="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-b-lg"><i className="fas fa-trash-alt w-6"></i>Delete Post</button>
+                        </div>
+                    )}
                 </div>
 
                 <div className="flex-grow overflow-y-auto">
@@ -131,26 +138,148 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, currentUser, on
     );
 };
 
-interface ImageCropModalProps {
-    imageSrc: string;
-    onClose: () => void;
-    onSave: (image: string) => void;
-}
-const ImageCropModal: React.FC<ImageCropModalProps> = ({ imageSrc, onClose, onSave }) => (
-    <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[60]" onClick={onClose}>
-        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl p-4 w-full max-w-sm m-4" onClick={e => e.stopPropagation()}>
-            <h3 className="text-lg font-bold mb-4 text-center">Position and Save</h3>
-            <div className="w-full aspect-square rounded-full overflow-hidden mx-auto bg-gray-200 dark:bg-gray-700">
-                <img src={imageSrc} alt="Crop preview" className="w-full h-full object-cover" />
-            </div>
-            <p className="text-xs text-center text-gray-500 mt-2">This is a preview. Final image will be saved.</p>
-             <div className="mt-6 flex justify-end space-x-2">
-                <button onClick={onClose} className="border border-gray-300 dark:border-gray-600 font-bold py-2 px-4 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Cancel</button>
-                <button onClick={() => onSave(imageSrc)} className="border border-[var(--accent-color)] text-[var(--accent-color)] font-bold py-2 px-4 rounded-lg text-sm hover:bg-[var(--accent-color)] hover:text-white transition-colors">Use Photo</button>
+// --- Custom Image Cropper ---
+const getCroppedImg = (imageSrc: string, pixelCrop: { width: number, height: number, x: number, y: number }): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.src = imageSrc;
+        image.onload = () => {
+            const canvas = document.createElement('canvas');
+            const size = Math.min(image.naturalWidth, image.naturalHeight);
+            const cropSize = Math.min(pixelCrop.width, pixelCrop.height);
+
+            canvas.width = 256;
+            canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+
+            if (!ctx) {
+                reject(new Error('Failed to get canvas context'));
+                return;
+            }
+
+            ctx.drawImage(
+                image,
+                pixelCrop.x,
+                pixelCrop.y,
+                cropSize,
+                cropSize,
+                0,
+                0,
+                256,
+                256
+            );
+
+            resolve(canvas.toDataURL('image/jpeg'));
+        };
+        image.onerror = (error) => reject(error);
+    });
+};
+
+const ImageCropModal: React.FC<{ imageSrc: string; onClose: () => void; onSave: (image: string) => void; }> = ({ imageSrc, onClose, onSave }) => {
+    const CROP_AREA_SIZE = 256;
+    const imageRef = useRef<HTMLImageElement>(null);
+    
+    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [isDragging, setIsDragging] = useState(false);
+    const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+    const [imageSize, setImageSize] = useState({ width: 0, height: 0});
+
+    useEffect(() => {
+        const img = new Image();
+        img.src = imageSrc;
+        img.onload = () => {
+            const aspect = img.naturalWidth / img.naturalHeight;
+            let width = CROP_AREA_SIZE;
+            let height = CROP_AREA_SIZE;
+            if (aspect > 1) { // Landscape
+                height = CROP_AREA_SIZE / aspect;
+            } else { // Portrait or square
+                width = CROP_AREA_SIZE * aspect;
+            }
+            setImageSize({ width, height });
+        };
+    }, [imageSrc]);
+
+
+    const handleSaveCrop = async () => {
+        if (!imageRef.current) return;
+
+        const image = imageRef.current;
+        const scaleX = image.naturalWidth / image.width;
+        const scaleY = image.naturalHeight / image.height;
+        const cropSize = CROP_AREA_SIZE * Math.min(scaleX, scaleY);
+
+
+        const pixelCrop = {
+            x: (-crop.x) * scaleX,
+            y: (-crop.y) * scaleY,
+            width: cropSize,
+            height: cropSize,
+        };
+
+        try {
+            const croppedImageUrl = await getCroppedImg(imageSrc, pixelCrop);
+            onSave(croppedImageUrl);
+        } catch (e) {
+            console.error(e);
+        }
+    };
+    
+    const onMouseDown = (e: React.MouseEvent) => {
+        e.preventDefault();
+        setIsDragging(true);
+        setDragStart({ x: e.clientX - crop.x, y: e.clientY - crop.y });
+    };
+
+    const onMouseMove = (e: React.MouseEvent) => {
+        if (!isDragging) return;
+        e.preventDefault();
+        const newX = e.clientX - dragStart.x;
+        const newY = e.clientY - dragStart.y;
+        
+        if (imageRef.current) {
+            const { width, height } = imageSize;
+            const boundedX = Math.max(Math.min(newX, 0), -(width - CROP_AREA_SIZE));
+            const boundedY = Math.max(Math.min(newY, 0), -(height - CROP_AREA_SIZE));
+            setCrop({ x: boundedX, y: boundedY });
+        }
+    };
+
+    const onMouseUp = () => setIsDragging(false);
+
+    return (
+        <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[60]" onClick={onClose}>
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl p-4 w-full max-w-sm m-4" onClick={e => e.stopPropagation()}>
+                <h3 className="text-lg font-bold mb-4 text-center">Position Photo</h3>
+                <div 
+                    className="relative w-[256px] h-[256px] mx-auto bg-gray-200 dark:bg-gray-700 overflow-hidden cursor-move"
+                    onMouseDown={onMouseDown}
+                    onMouseMove={onMouseMove}
+                    onMouseUp={onMouseUp}
+                    onMouseLeave={onMouseUp}
+                >
+                    <img
+                        ref={imageRef}
+                        src={imageSrc}
+                        alt="Crop source"
+                        style={{
+                            width: `${imageSize.width}px`,
+                            height: `${imageSize.height}px`,
+                            transform: `translate(${crop.x}px, ${crop.y}px)`,
+                        }}
+                        className="object-cover pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                    />
+                    <div className="absolute inset-0 shadow-[0_0_0_9999px_rgba(0,0,0,0.5)] rounded-full pointer-events-none"></div>
+                </div>
+                 <div className="mt-6 flex justify-end space-x-2">
+                    <button onClick={onClose} className="border border-gray-300 dark:border-gray-600 font-bold py-2 px-4 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Cancel</button>
+                    <button onClick={handleSaveCrop} className="border border-[var(--accent-color)] text-[var(--accent-color)] font-bold py-2 px-4 rounded-lg text-sm hover:bg-[var(--accent-color)] hover:text-white transition-colors">Use Photo</button>
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
+
 
 const InputWithCounter: React.FC<{ 
     label: string; 

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { getTalentById, findOrCreateConversationByTalentId, getPostsByTalentId, getTalentByPost, addCommentToPost, TALENTS, USERS } from '../../data/mockData';
-import { Post, User, Comment as CommentType } from '../../types';
+import { Post, User, Comment as CommentType, Talent } from '../../types';
 
 // --- Reusable Helper Components (defined here to avoid creating new files) ---
 
@@ -92,6 +92,39 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, currentUser, on
     );
 };
 
+interface PortfolioViewerProps {
+    talent: Talent;
+    startIndex: number;
+    onClose: () => void;
+}
+
+const PortfolioViewer: React.FC<PortfolioViewerProps> = ({ talent, startIndex, onClose }) => {
+    const [currentIndex, setCurrentIndex] = useState(startIndex);
+    const currentItem = talent.portfolio[currentIndex];
+
+    const goToNext = () => setCurrentIndex(prev => (prev + 1) % talent.portfolio.length);
+    const goToPrev = () => setCurrentIndex(prev => (prev - 1 + talent.portfolio.length) % talent.portfolio.length);
+
+    return (
+        <div className="absolute inset-0 bg-black bg-opacity-90 flex items-center justify-center z-[70]" onClick={onClose}>
+            {currentItem.type === 'image' ? (
+                <img src={currentItem.url} alt="Portfolio item" className="object-contain max-w-[90vw] max-h-[90vh] rounded-lg" />
+            ) : (
+                <div className="w-[90vw] h-[90vh] max-w-lg max-h-screen flex items-center justify-center bg-black rounded-lg relative">
+                    <img src={currentItem.thumbnail} alt="Video thumbnail" className="w-full h-full object-cover rounded-lg opacity-50" />
+                    <i className="fas fa-play text-white text-6xl absolute"></i>
+                </div>
+            )}
+             <button onClick={(e) => { e.stopPropagation(); goToPrev(); }} className="absolute left-4 top-1/2 -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white rounded-full w-10 h-10 flex items-center justify-center z-10 hover:bg-opacity-75">
+                <i className="fas fa-chevron-left"></i>
+            </button>
+            <button onClick={(e) => { e.stopPropagation(); goToNext(); }} className="absolute right-4 top-1/2 -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white rounded-full w-10 h-10 flex items-center justify-center z-10 hover:bg-opacity-75">
+                <i className="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    );
+};
+
 
 // --- Main Component ---
 
@@ -108,7 +141,7 @@ const TalentProfileView: React.FC = () => {
     const [isReportModalOpen, setIsReportModalOpen] = useState<{ type: 'profile' | 'post' | null }>({ type: null });
     const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
     const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-    const [friendRequestSent, setFriendRequestSent] = useState(false);
+    const [portfolioStartIndex, setPortfolioStartIndex] = useState<number | null>(null);
 
     const talentPosts = getPostsByTalentId(talentId);
     // A mock current user for post interactions. In a real app, this would come from context.
@@ -168,6 +201,15 @@ const TalentProfileView: React.FC = () => {
                     <h2 className="text-2xl font-bold flex items-center">{talent.name} {getVerificationIcon({ ...talent, isPremium: user?.isPremium })}</h2>
                     <div className="flex items-center text-md mt-1 text-gray-500"><span className="text-yellow-500 mr-1">⭐</span><span className="font-semibold mr-2">{talent.rating.toFixed(1)}</span><span>({talent.reviewsCount} reviews)</span></div>
                     <p className="text-sm mt-3 max-w-md text-gray-600 dark:text-gray-400">{talent.bio}</p>
+                    {talent.skills && talent.skills.length > 0 && (
+                        <div className="flex flex-wrap justify-center gap-2 mt-4 max-w-md">
+                            {talent.skills.map(skill => (
+                                <span key={skill} className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 text-xs font-semibold px-2.5 py-1 rounded-full">
+                                    {skill}
+                                </span>
+                            ))}
+                        </div>
+                    )}
                     <div className="mt-4 w-full max-w-sm space-y-2"><button onClick={() => setIsBookingModalOpen(true)} className="w-full border-2 border-[var(--accent-color)] bg-[var(--accent-color)] text-white font-bold py-3 px-4 rounded-lg text-md">Book Now</button><div className="flex space-x-2"><button onClick={handleMessage} className="w-full border-2 border-gray-300 dark:border-gray-600 font-bold py-3 px-4 rounded-lg text-md">Message</button></div></div>
                 </div>
                 
@@ -179,7 +221,7 @@ const TalentProfileView: React.FC = () => {
 
                 <div className="p-1">
                     {activeTab === 'posts' && (talentPosts.length > 0 ? (<div className="grid grid-cols-3 gap-1">{talentPosts.map(post => (<div key={post.id} className="aspect-square bg-gray-200 dark:bg-gray-700 cursor-pointer" onClick={() => setSelectedPost(post)}>{post.imageUrl && <img src={post.imageUrl} alt="post" className="w-full h-full object-cover" />}</div>))}</div>) : (<div className="text-center text-gray-500 p-12"><i className="fas fa-camera-retro text-4xl mb-3"></i><h3 className="font-bold">No Posts Yet</h3></div>))}
-                    {activeTab === 'portfolio' && (talent.portfolio.length > 0 ? (<div className="grid grid-cols-3 gap-1">{talent.portfolio.map((item, index) => (<div key={index} className="aspect-square bg-gray-200 dark:bg-gray-700 rounded"><img src={item.url} alt={`Portfolio item ${index+1}`} className="w-full h-full object-cover rounded"/></div>))}</div>) : (<div className="text-center text-gray-500 p-12"><i className="fas fa-image text-4xl mb-3"></i><h3 className="font-bold">No Portfolio Items</h3></div>))}
+                    {activeTab === 'portfolio' && (talent.portfolio.length > 0 ? (<div className="grid grid-cols-3 gap-1">{talent.portfolio.map((item, index) => (<div key={index} onClick={() => setPortfolioStartIndex(index)} className="group aspect-square bg-gray-200 dark:bg-gray-700 rounded cursor-pointer relative"><img src={item.type === 'video' ? item.thumbnail : item.url} alt={`Portfolio item ${index+1}`} className="w-full h-full object-cover rounded"/><div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-colors flex items-center justify-center">{item.type === 'video' && <i className="fas fa-play text-white text-3xl opacity-0 group-hover:opacity-100 transition-opacity"></i>}</div></div>))}</div>) : (<div className="text-center text-gray-500 p-12"><i className="fas fa-image text-4xl mb-3"></i><h3 className="font-bold">No Portfolio Items</h3></div>))}
                     {activeTab === 'reviews' && (talent.reviews.length > 0 ? (<div className="space-y-4 p-3">{talent.reviews.map((review, index) => (<div key={index} className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg"><div className="flex items-center mb-1"><p className="font-bold text-sm mr-2">{review.reviewer}</p><div className="flex text-yellow-500">{[...Array(review.rating)].map((_, i) => <i key={i} className="fas fa-star text-xs"></i>)}</div></div><p className="text-sm text-gray-600 dark:text-gray-400">{review.comment}</p></div>))}</div>) : (<div className="text-center text-gray-500 p-12"><i className="fas fa-comment-slash text-4xl mb-3"></i><h3 className="font-bold">No Reviews Yet</h3></div>))}
                 </div>
                 
@@ -189,6 +231,7 @@ const TalentProfileView: React.FC = () => {
             {isImageViewerOpen && <ImageViewerModal imageUrl={talent.profileImage} onClose={() => setIsImageViewerOpen(false)} />}
             {isReportModalOpen.type && <ReportModal itemType={isReportModalOpen.type} onClose={() => setIsReportModalOpen({ type: null })} onSubmit={handleReportSubmit} />}
             {selectedPost && <PostDetailModal post={selectedPost} currentUser={mockCurrentUser} onClose={() => setSelectedPost(null)} onPostUpdate={(p) => setSelectedPost(p)} onReport={() => setIsReportModalOpen({ type: 'post' })} />}
+            {portfolioStartIndex !== null && <PortfolioViewer talent={talent} startIndex={portfolioStartIndex} onClose={() => setPortfolioStartIndex(null)} />}
         </div>
     );
 };

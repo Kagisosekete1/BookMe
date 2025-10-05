@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom';
 import { User } from '../../types';
@@ -23,7 +21,7 @@ const NotificationPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             color: 'text-blue-500',
             textParts: [
                 { type: 'text', content: 'You have a new message from ' },
-                { type: 'link', content: talent?.name || 'Unknown', path: `/talent/${talent?.id}` },
+                { type: 'link', content: talent?.name || 'Unknown', path: `/messages/${c.id}` },
                 { type: 'text', content: '.' }
             ],
             time: c.lastMessageTimestamp,
@@ -118,13 +116,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentUser, onLogout }) => {
         setShowNotifications(prev => !prev);
     };
 
-    const showBackButton = location.pathname.startsWith('/messages') || location.pathname === '/settings';
-                         
+    const isSettingsPage = location.pathname === '/settings';
     const isSettingsSubPage = /^\/settings\/.+/.test(location.pathname);
+
     const hideTopBar = location.pathname === '/profile' ||
                        location.pathname.startsWith('/talent/') ||
                        isSettingsSubPage;
-    
+
+    // Show back button for messages and the main settings page.
+    const showBackButton = location.pathname.startsWith('/messages') || isSettingsPage;
+                         
     return (
         <div className="flex flex-col h-full">
             {!hideTopBar && <TopBar onBack={showBackButton ? () => navigate(-1) : undefined} onToggleNotifications={handleToggleNotifications} />}

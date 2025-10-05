@@ -11,8 +11,9 @@ export interface Talent {
   reviewsCount: number;
   distance: number;
   hustles: string[];
+  skills: string[];
   bio: string;
-  portfolio: { type: 'image' | 'video'; url: string }[];
+  portfolio: { type: 'image' | 'video'; url: string; thumbnail?: string }[];
   reviews: { reviewer: string; rating: number; comment: string }[];
   verificationTier?: 'gold' | 'blue';
 }

@@ -271,7 +271,7 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
           case AuthState.ForgotPassword:
           case AuthState.VerifyCode:
           case AuthState.ResetPassword:
-              changeAuthState(AuthState.Login);
+              changeAuthState(AuthState.Login, { keepEmail: true });
               break;
           case AuthState.PhoneVerify:
               changeAuthState(AuthState.PhoneInput);
@@ -480,7 +480,7 @@ const handleResetPassword = () => {
             <p className="text-center text-xs text-gray-400 mt-6">
                 By logging in, you agree to our <button onClick={() => setIsTermsModalOpen(true)} className="font-semibold underline hover:text-black dark:hover:text-white">Terms of Use</button>.
             </p>
-            <p className="text-center mt-4 text-sm text-gray-500">Don't have an account? <button onClick={() => changeAuthState(AuthState.Signup)} className="font-bold text-black dark:text-white hover:underline">Sign Up</button></p>
+            <p className="text-center mt-4 text-sm text-gray-500">Don't have an account? <button onClick={() => changeAuthState(AuthState.Signup, { keepEmail: true })} className="font-bold text-black dark:text-white hover:underline">Sign Up</button></p>
           </div>
         );
       case AuthState.Signup:
@@ -498,7 +498,7 @@ const handleResetPassword = () => {
              <p className="text-center text-xs text-gray-400 mt-6">
                 By signing up, you agree to our <button onClick={() => setIsTermsModalOpen(true)} className="font-semibold underline hover:text-black dark:hover:text-white">Terms of Use</button>.
             </p>
-            <p className="text-center mt-4 text-sm text-gray-500">Already have an account? <button onClick={() => changeAuthState(AuthState.Login)} className="font-bold text-black dark:text-white hover:underline">Login</button></p>
+            <p className="text-center mt-4 text-sm text-gray-500">Already have an account? <button onClick={() => changeAuthState(AuthState.Login, { keepEmail: true })} className="font-bold text-black dark:text-white hover:underline">Login</button></p>
           </div>
         );
       case AuthState.PhoneInput:
