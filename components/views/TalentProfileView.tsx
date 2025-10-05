@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getTalentById, findOrCreateConversationByTalentId, getPostsByTalentId, getTalentByPost, addCommentToPost, TALENTS, USERS } from '../../data/mockData';
+import { getTalentById, findOrCreateConversationByTalentId, getPostsByTalentId, getTalentByPost, addCommentToPost, TALENTS, USERS, toggleCommentLike } from '../../data/mockData';
 import { Post, User, Comment as CommentType, Talent } from '../../types';
 
 // --- Reusable Helper Components (defined here to avoid creating new files) ---
@@ -53,8 +53,12 @@ interface PostDetailModalProps {
     onClose: () => void;
     onPostUpdate: (updatedPost: Post) => void;
     onReport: () => void;
+    onPrev: () => void;
+    onNext: () => void;
+    currentIndex: number;
+    totalPosts: number;
 }
-const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, currentUser, onClose, onPostUpdate, onReport }) => {
+const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, currentUser, onClose, onPostUpdate, onReport, onPrev, onNext, currentIndex, totalPosts }) => {
     const talent = getTalentByPost(post);
     const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(post.likes);
@@ -62,16 +66,26 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, currentUser, on
 
     const handleAddComment = () => {
         if (!newComment.trim()) return;
-        const comment: CommentType = { id: `c${Date.now()}`, user: currentUser.name, userId: currentUser.id, profileImage: currentUser.profileImage, text: newComment.trim() };
+        const comment: CommentType = { id: `c${Date.now()}`, user: currentUser.name, userId: currentUser.id, profileImage: currentUser.profileImage, text: newComment.trim(), likes: 0, isLiked: false };
         addCommentToPost(post.id, comment);
         onPostUpdate({ ...post });
         setNewComment('');
+    };
+    
+    const handleLikeComment = (commentId: string) => {
+        toggleCommentLike(commentId);
+        onPostUpdate({ ...post });
     };
 
     if (!talent) return null;
 
     return (
         <div className="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50" onClick={onClose}>
+            {currentIndex > 0 && (
+                <button onClick={(e) => { e.stopPropagation(); onPrev(); }} className="absolute left-2 top-1/2 -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white rounded-full w-8 h-8 flex items-center justify-center z-10 hover:bg-opacity-75">
+                    <i className="fas fa-chevron-left"></i>
+                </button>
+            )}
             <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl w-full max-w-md max-h-[90%] flex flex-col m-4 relative" onClick={(e) => e.stopPropagation()}>
                 <div className="flex items-center p-3 border-b border-gray-200 dark:border-gray-700">
                     <img src={talent.profileImage} alt={talent.name} className="w-10 h-10 rounded-full mr-3" />
@@ -82,12 +96,31 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, currentUser, on
                 <div className="flex-grow overflow-y-auto">
                     {post.imageUrl && <img src={post.imageUrl} alt="Post content" className="w-full h-auto" />}
                     <div className="p-4"><p className="mb-4 text-sm">{post.text}</p><div className="flex justify-start items-center text-gray-500 dark:text-gray-400 border-t border-b border-gray-200 dark:border-gray-700 py-2 space-x-8"><button onClick={() => { setIsLiked(!isLiked); setLikeCount(p => isLiked ? p - 1 : p + 1); }} className={`flex items-center space-x-2 transition-colors ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}><i className={`${isLiked ? 'fas' : 'far'} fa-heart`}></i><span>{likeCount}</span></button><div className="flex items-center space-x-2"><i className="far fa-comment"></i><span>{post.comments.length}</span></div></div></div>
-                    <div className="px-4 pb-4 space-y-4">{post.comments.map(c => <div key={c.id} className="flex items-start space-x-3"><img src={c.profileImage} alt={c.user} className="w-8 h-8 rounded-full" /><div><p><span className="font-bold text-sm">{c.user}</span>{' '}<span className="text-sm text-gray-700 dark:text-gray-300">{c.text}</span></p></div></div>)}</div>
+                    <div className="px-4 pb-4 space-y-4">{post.comments.map(c => 
+                        <div key={c.id} className="flex items-start space-x-3 group">
+                            <img src={c.profileImage} alt={c.user} className="w-8 h-8 rounded-full" />
+                            <div className="flex-grow">
+                                <p>
+                                    <span className="font-bold text-sm">{c.user}</span>{' '}
+                                    <span className="text-sm text-gray-700 dark:text-gray-300">{c.text}</span>
+                                </p>
+                                {c.likes > 0 && <span className="text-xs text-gray-500 mt-1">{c.likes} likes</span>}
+                            </div>
+                            <button onClick={() => handleLikeComment(c.id)} className="shrink-0 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <i className={`${c.isLiked ? 'fas text-red-500' : 'far'} fa-heart`}></i>
+                            </button>
+                        </div>
+                    )}</div>
                 </div>
                 <div className="p-2 border-t border-gray-200 dark:border-gray-700 shrink-0">
                     <div className="flex items-center space-x-2"><img src={currentUser.profileImage} alt={currentUser.name} className="w-10 h-10 rounded-full" /><input type="text" placeholder="Add a comment..." value={newComment} onChange={(e) => setNewComment(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleAddComment()} className="w-full bg-gray-100 dark:bg-gray-800 border-none rounded-full py-2 px-4 outline-none" /><button onClick={handleAddComment} className="font-semibold text-[var(--accent-color)] hover:opacity-80 disabled:opacity-50" disabled={!newComment.trim()}>Post</button></div>
                 </div>
             </div>
+            {currentIndex < totalPosts - 1 && (
+                <button onClick={(e) => { e.stopPropagation(); onNext(); }} className="absolute right-2 top-1/2 -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white rounded-full w-8 h-8 flex items-center justify-center z-10 hover:bg-opacity-75">
+                    <i className="fas fa-chevron-right"></i>
+                </button>
+            )}
         </div>
     );
 };
@@ -141,11 +174,12 @@ const TalentProfileView: React.FC = () => {
     const [isReportModalOpen, setIsReportModalOpen] = useState<{ type: 'profile' | 'post' | null }>({ type: null });
     const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
     const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+    const [selectedPostIndex, setSelectedPostIndex] = useState<number | null>(null);
     const [portfolioStartIndex, setPortfolioStartIndex] = useState<number | null>(null);
 
     const talentPosts = getPostsByTalentId(talentId);
     // A mock current user for post interactions. In a real app, this would come from context.
-    const mockCurrentUser = { id: 'client-test', name: 'Test Client', profileImage: 'https://picsum.photos/seed/client/200' } as User;
+    const mockCurrentUser = USERS.find(u => u.role === 'Client')!;
 
     const handleMessage = () => {
         if (!talent) return;
@@ -156,6 +190,26 @@ const TalentProfileView: React.FC = () => {
     const handleReportSubmit = () => {
         setIsReportModalOpen({ type: null });
         alert('Thank you. Your report has been submitted.');
+    };
+    
+    const handlePostClick = (post: Post, index: number) => {
+        setSelectedPost(post);
+        setSelectedPostIndex(index);
+    };
+
+    const handleNextPost = () => {
+        if (selectedPostIndex !== null && selectedPostIndex < talentPosts.length - 1) {
+            const nextIndex = selectedPostIndex + 1;
+            setSelectedPostIndex(nextIndex);
+            setSelectedPost(talentPosts[nextIndex]);
+        }
+    };
+    const handlePrevPost = () => {
+        if (selectedPostIndex !== null && selectedPostIndex > 0) {
+            const prevIndex = selectedPostIndex - 1;
+            setSelectedPostIndex(prevIndex);
+            setSelectedPost(talentPosts[prevIndex]);
+        }
     };
 
     if (!talent) {
@@ -220,7 +274,7 @@ const TalentProfileView: React.FC = () => {
                 </div>
 
                 <div className="p-1">
-                    {activeTab === 'posts' && (talentPosts.length > 0 ? (<div className="grid grid-cols-3 gap-1">{talentPosts.map(post => (<div key={post.id} className="aspect-square bg-gray-200 dark:bg-gray-700 cursor-pointer" onClick={() => setSelectedPost(post)}>{post.imageUrl && <img src={post.imageUrl} alt="post" className="w-full h-full object-cover" />}</div>))}</div>) : (<div className="text-center text-gray-500 p-12"><i className="fas fa-camera-retro text-4xl mb-3"></i><h3 className="font-bold">No Posts Yet</h3></div>))}
+                    {activeTab === 'posts' && (talentPosts.length > 0 ? (<div className="grid grid-cols-3 gap-1">{talentPosts.map((post, index) => (<div key={post.id} className="aspect-square bg-gray-200 dark:bg-gray-700 cursor-pointer" onClick={() => handlePostClick(post, index)}>{post.imageUrl && <img src={post.imageUrl} alt="post" className="w-full h-full object-cover" />}</div>))}</div>) : (<div className="text-center text-gray-500 p-12"><i className="fas fa-camera-retro text-4xl mb-3"></i><h3 className="font-bold">No Posts Yet</h3></div>))}
                     {activeTab === 'portfolio' && (talent.portfolio.length > 0 ? (<div className="grid grid-cols-3 gap-1">{talent.portfolio.map((item, index) => (<div key={index} onClick={() => setPortfolioStartIndex(index)} className="group aspect-square bg-gray-200 dark:bg-gray-700 rounded cursor-pointer relative"><img src={item.type === 'video' ? item.thumbnail : item.url} alt={`Portfolio item ${index+1}`} className="w-full h-full object-cover rounded"/><div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-30 transition-colors flex items-center justify-center">{item.type === 'video' && <i className="fas fa-play text-white text-3xl opacity-0 group-hover:opacity-100 transition-opacity"></i>}</div></div>))}</div>) : (<div className="text-center text-gray-500 p-12"><i className="fas fa-image text-4xl mb-3"></i><h3 className="font-bold">No Portfolio Items</h3></div>))}
                     {activeTab === 'reviews' && (talent.reviews.length > 0 ? (<div className="space-y-4 p-3">{talent.reviews.map((review, index) => (<div key={index} className="bg-gray-50 dark:bg-gray-900 p-3 rounded-lg"><div className="flex items-center mb-1"><p className="font-bold text-sm mr-2">{review.reviewer}</p><div className="flex text-yellow-500">{[...Array(review.rating)].map((_, i) => <i key={i} className="fas fa-star text-xs"></i>)}</div></div><p className="text-sm text-gray-600 dark:text-gray-400">{review.comment}</p></div>))}</div>) : (<div className="text-center text-gray-500 p-12"><i className="fas fa-comment-slash text-4xl mb-3"></i><h3 className="font-bold">No Reviews Yet</h3></div>))}
                 </div>
@@ -230,7 +284,19 @@ const TalentProfileView: React.FC = () => {
             {isActionMenuOpen && <ActionMenu />}
             {isImageViewerOpen && <ImageViewerModal imageUrl={talent.profileImage} onClose={() => setIsImageViewerOpen(false)} />}
             {isReportModalOpen.type && <ReportModal itemType={isReportModalOpen.type} onClose={() => setIsReportModalOpen({ type: null })} onSubmit={handleReportSubmit} />}
-            {selectedPost && <PostDetailModal post={selectedPost} currentUser={mockCurrentUser} onClose={() => setSelectedPost(null)} onPostUpdate={(p) => setSelectedPost(p)} onReport={() => setIsReportModalOpen({ type: 'post' })} />}
+            {selectedPost && selectedPostIndex !== null && (
+                <PostDetailModal 
+                    post={selectedPost} 
+                    currentUser={mockCurrentUser} 
+                    onClose={() => { setSelectedPost(null); setSelectedPostIndex(null); }} 
+                    onPostUpdate={(p) => setSelectedPost(p)} 
+                    onReport={() => setIsReportModalOpen({ type: 'post' })}
+                    onPrev={handlePrevPost}
+                    onNext={handleNextPost}
+                    currentIndex={selectedPostIndex}
+                    totalPosts={talentPosts.length}
+                />
+            )}
             {portfolioStartIndex !== null && <PortfolioViewer talent={talent} startIndex={portfolioStartIndex} onClose={() => setPortfolioStartIndex(null)} />}
         </div>
     );

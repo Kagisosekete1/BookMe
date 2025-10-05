@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { User, Post, Reel, UserRole, Comment as CommentType } from '../../types';
-import { getPostsByTalentId, getReelsByTalentId, getTalentById, addCommentToPost, getTalentByPost, TALENTS } from '../../data/mockData';
+import { getPostsByTalentId, getReelsByTalentId, getTalentById, addCommentToPost, getTalentByPost, TALENTS, toggleCommentLike } from '../../data/mockData';
 
 const getVerificationIcon = (user: { verificationTier?: 'gold' | 'blue', isPremium?: boolean }) => {
     if (user.isPremium) {
@@ -67,11 +67,18 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, currentUser, on
             userId: currentUser.id,
             profileImage: currentUser.profileImage,
             text: newComment.trim(),
+            likes: 0,
+            isLiked: false,
         };
 
         addCommentToPost(post.id, comment);
         onPostUpdate({ ...post }); // The `post` prop is mutated, create new obj ref to trigger re-render
         setNewComment('');
+    };
+    
+    const handleLikeComment = (commentId: string) => {
+        toggleCommentLike(commentId);
+        onPostUpdate({ ...post });
     };
 
     if (!talent) return null;
@@ -112,11 +119,20 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, currentUser, on
                          {post.comments.map(comment => {
                             const isTalentCommenter = TALENTS.some(t => t.id === comment.userId);
                             return (
-                                <div key={comment.id} className="flex items-start space-x-3">
+                                <div key={comment.id} className="flex items-start space-x-3 group">
                                     <Link to={`/talent/${comment.userId}`} onClick={onClose} className={!isTalentCommenter ? 'pointer-events-none' : ''}>
                                         <img src={comment.profileImage} alt={comment.user} className="w-8 h-8 rounded-full" />
                                     </Link>
-                                    <div><p><Link to={`/talent/${comment.userId}`} onClick={onClose} className={`font-bold text-sm hover:underline ${!isTalentCommenter ? 'pointer-events-none' : ''}`}>{comment.user}</Link>{' '}<span className="text-sm text-gray-700 dark:text-gray-300">{comment.text}</span></p></div>
+                                    <div className="flex-grow">
+                                        <p>
+                                            <Link to={`/talent/${comment.userId}`} onClick={onClose} className={`font-bold text-sm hover:underline ${!isTalentCommenter ? 'pointer-events-none' : ''}`}>{comment.user}</Link>{' '}
+                                            <span className="text-sm text-gray-700 dark:text-gray-300">{comment.text}</span>
+                                        </p>
+                                        {comment.likes > 0 && <span className="text-xs text-gray-500 mt-1">{comment.likes} likes</span>}
+                                    </div>
+                                    <button onClick={() => handleLikeComment(comment.id)} className="shrink-0 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <i className={`${comment.isLiked ? 'fas text-red-500' : 'far'} fa-heart`}></i>
+                                    </button>
                                 </div>
                             );
                          })}

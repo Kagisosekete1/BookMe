@@ -24,6 +24,8 @@ export interface Comment {
   userId: string;
   profileImage: string;
   text: string;
+  likes: number;
+  isLiked?: boolean;
 }
 
 export interface Post {

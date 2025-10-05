@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { REELS, getTalentByReel, addCommentToReel, TALENTS } from '../../data/mockData';
-import { Reel, User, Comment as CommentType, Post } from '../../types';
+import { REELS, getTalentByReel, addCommentToReel, TALENTS, toggleCommentLike } from '../../data/mockData';
+import { Reel, User, Comment as CommentType } from '../../types';
 
 // --- Reusable Modals ---
 
@@ -22,9 +22,10 @@ interface CommentsModalProps {
     onClose: () => void;
     onAddComment: (text: string) => void;
     onViewImage: (url: string) => void;
+    onLikeComment: (commentId: string) => void;
 }
 
-const CommentsModal: React.FC<CommentsModalProps> = ({ reel, currentUser, onClose, onAddComment, onViewImage }) => {
+const CommentsModal: React.FC<CommentsModalProps> = ({ reel, currentUser, onClose, onAddComment, onViewImage, onLikeComment }) => {
     const [newComment, setNewComment] = useState('');
 
     const handlePostComment = () => {
@@ -35,8 +36,8 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ reel, currentUser, onClos
     };
     
     return (
-        <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-end z-50" onClick={onClose}>
-            <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl w-full max-h-[75%] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-start pt-28 z-50" onClick={onClose}>
+            <div className="bg-white dark:bg-gray-900 rounded-b-2xl shadow-xl w-full max-h-[75%] flex flex-col" onClick={(e) => e.stopPropagation()}>
                 <div className="text-center py-3 border-b border-gray-200 dark:border-gray-700 relative">
                     <h3 className="text-lg font-bold">Comments</h3>
                     <button onClick={onClose} className="absolute top-2 right-4 text-2xl">&times;</button>
@@ -45,11 +46,11 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ reel, currentUser, onClos
                     {reel.comments.map(comment => {
                         const isTalent = TALENTS.some(t => t.id === comment.userId);
                         return (
-                             <div key={comment.id} className="flex items-start space-x-3">
+                             <div key={comment.id} className="flex items-start space-x-3 group">
                                 <button onClick={() => onViewImage(comment.profileImage)} className="shrink-0">
                                     <img src={comment.profileImage} alt={comment.user} className="w-8 h-8 rounded-full" />
                                 </button>
-                                <div>
+                                <div className="flex-grow">
                                     <p>
                                         {isTalent ? (
                                             <Link to={`/talent/${comment.userId}`} onClick={onClose} className="font-bold text-sm hover:underline">{comment.user}</Link>
@@ -59,7 +60,11 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ reel, currentUser, onClos
                                         {' '}
                                         <span className="text-sm text-gray-700 dark:text-gray-300">{comment.text}</span>
                                     </p>
+                                    {comment.likes > 0 && <span className="text-xs text-gray-500 mt-1">{comment.likes} likes</span>}
                                 </div>
+                                <button onClick={() => onLikeComment(comment.id)} className="shrink-0 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <i className={`${comment.isLiked ? 'fas text-red-500' : 'far'} fa-heart`}></i>
+                                </button>
                             </div>
                         );
                     })}
@@ -151,11 +156,17 @@ const ReelsView: React.FC<ReelsViewProps> = ({ currentUser }) => {
             userId: currentUser.id,
             profileImage: currentUser.profileImage,
             text,
+            likes: 0,
+            isLiked: false,
         };
 
         addCommentToReel(activeCommentsReel.id, newComment);
-        
-        // Create a new object reference to trigger react's state update.
+        setActiveCommentsReel({ ...activeCommentsReel });
+    };
+
+    const handleLikeComment = (commentId: string) => {
+        if (!activeCommentsReel) return;
+        toggleCommentLike(commentId);
         setActiveCommentsReel({ ...activeCommentsReel });
     };
 
@@ -174,6 +185,7 @@ const ReelsView: React.FC<ReelsViewProps> = ({ currentUser }) => {
                     onClose={() => setActiveCommentsReel(null)}
                     onAddComment={handleAddComment}
                     onViewImage={setViewerImageUrl}
+                    onLikeComment={handleLikeComment}
                 />
             )}
              {viewerImageUrl && (

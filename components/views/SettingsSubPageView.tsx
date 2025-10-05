@@ -138,56 +138,185 @@ const TermsOfUseContent: React.FC = () => (
 
 const PrivacyPolicyContent: React.FC = () => (
     <LegalContentWrapper>
-        <h4 className="font-bold text-lg text-black dark:text-white">Book Me App — Privacy Policy</h4>
         <p className="text-xs text-gray-500">
+            Powered by SE-MO Group (Pty) Ltd<br/>
             <strong>Effective Date:</strong> October 2025<br />
             <strong>Last Updated:</strong> October 5, 2025
         </p>
-        <p>At Book Me App, powered by SE-MO Group (Pty) Ltd, your privacy matters. This Privacy Policy explains how we collect, use, and protect your personal information.</p>
-        <h5 className="font-bold text-black dark:text-white pt-2">1. Information We Collect</h5>
+        <h4 className="font-bold text-lg text-black dark:text-white pt-4">🛡️ PRIVACY POLICY</h4>
+        
+        <h5 className="font-bold text-black dark:text-white pt-2">1. Introduction</h5>
+        <p>At Book Me App, powered by SE-MO Group (Pty) Ltd, we value your privacy. This Privacy Policy explains how we collect, use, and protect your personal information when you use our app, website, or related services (collectively, the “App”).</p>
+        <p>By using Book Me App, you agree to this Privacy Policy. If you do not agree, please stop using the App.</p>
+
+        <h5 className="font-bold text-black dark:text-white pt-2">2. Information We Collect</h5>
+        <p>We may collect the following types of data:</p>
         <ul className="list-disc list-inside space-y-1 pl-4">
-            <li>Personal Information (Name, email, profile details, uploads)</li>
-            <li>Payment Information (for Premium Users via secure third parties)</li>
-            <li>Usage Data (likes, comments, bookings, device info)</li>
-            <li>Optional Data (location, communication preferences)</li>
+            <li><strong>Personal Information:</strong> Name, username, and password, Email address or phone number, Profile details (bio, category, city, and rates), Uploaded photos, videos, and reels.</li>
+            <li><strong>Payment Information (for Premium Users):</strong> Payment method details (via secure third-party processors), Subscription status and billing records. We never store your full card details.</li>
+            <li><strong>Usage Data:</strong> App interactions (likes, comments, bookings, etc.), Ad views and engagement (for Free users), Device type, IP address, and session duration.</li>
+            <li><strong>Optional Data:</strong> Location (for nearby searches), Notification and communication preferences.</li>
         </ul>
-        <h5 className="font-bold text-black dark:text-white pt-2">2. How We Use Your Information</h5>
-        <p>We use your information to create and manage your account, facilitate bookings, display content, manage subscriptions, communicate with you, and prevent fraud. We will never sell your personal information.</p>
-        <h5 className="font-bold text-black dark:text-white pt-2">7. Your Rights</h5>
-        <p>You may have the right to access, correct, or delete your personal data. To exercise these rights, email us.</p>
-        <h5 className="font-bold text-black dark:text-white pt-2">12. Contact Us</h5>
-        <p>If you have questions or privacy concerns, contact us at:</p>
+
+        <h5 className="font-bold text-black dark:text-white pt-2">3. How We Use Your Information</h5>
+        <p>Your data helps us to:</p>
+        <ul className="list-disc list-inside space-y-1 pl-4">
+            <li>Manage user accounts and profiles</li>
+            <li>Facilitate bookings between clients and service providers</li>
+            <li>Display posts, profiles, and reels</li>
+            <li>Show relevant ads (for Free users)</li>
+            <li>Manage Premium subscriptions and Gold Verification Tick</li>
+            <li>Communicate updates and provide customer support</li>
+            <li>Prevent fraud or misuse</li>
+        </ul>
+        <p>We do not sell your personal data.</p>
+        
+        <h5 className="font-bold text-black dark:text-white pt-2">4. Free vs. Premium Accounts</h5>
+        <h6 className="font-semibold text-black dark:text-white pl-2">4.1 Free Users</h6>
+        <ul className="list-disc list-inside space-y-1 pl-4">
+            <li>Can use the app at no cost</li>
+            <li>Will see ads in the app</li>
+            <li>Ads are shown based on anonymous app usage data</li>
+        </ul>
+        <h6 className="font-semibold text-black dark:text-white pl-2">4.2 Premium Users</h6>
+        <ul className="list-disc list-inside space-y-1 pl-4">
+            <li>Pay R150/month</li>
+            <li>Enjoy an ad-free experience</li>
+            <li>Receive a Gold Verification Tick on their profile</li>
+            <li>Appear higher in searches and gain premium visibility</li>
+            <li>Can manage or cancel the subscription anytime in Settings → Upgrade to Premium</li>
+        </ul>
+        
+        <h5 className="font-bold text-black dark:text-white pt-2">5. Sharing Information</h5>
+        <p>Your data may be shared only when necessary:</p>
+        <ul className="list-disc list-inside space-y-1 pl-4">
+            <li>With other users (for public profiles and posts)</li>
+            <li>With service providers (for hosting, payments, analytics)</li>
+            <li>For legal reasons (if required by law or to protect users)</li>
+        </ul>
+        <p>All partners follow strict data protection agreements.</p>
+
+        <h5 className="font-bold text-black dark:text-white pt-2">6. Advertising & Analytics</h5>
+        <p>We use analytics tools to improve the app. Free users may see personalized or non-personalized ads. You can control ad preferences in your phone’s privacy settings.</p>
+
+        <h5 className="font-bold text-black dark:text-white pt-2">7. Data Security</h5>
+        <p>We use encryption, secure logins, and verified payment systems to protect your data. However, no system is 100% secure—please keep your password private.</p>
+
+        <h5 className="font-bold text-black dark:text-white pt-2">8. Your Rights</h5>
+        <p>You may:</p>
+        <ul className="list-disc list-inside space-y-1 pl-4">
+            <li>Access or update your data</li>
+            <li>Request account deletion</li>
+            <li>Withdraw marketing consent</li>
+            <li>Report privacy concerns</li>
+        </ul>
+        <p>Contact us at <a href="mailto:info@se-mogroup.com" className="text-[var(--accent-color)] underline">info@se-mogroup.com</a> to exercise your rights.</p>
+
+        <h5 className="font-bold text-black dark:text-white pt-2">9. Data Retention</h5>
+        <p>We keep your data only as long as needed for services or legal obligations. When you delete your account, your personal data is permanently removed after a short retention period.</p>
+        
+        <h5 className="font-bold text-black dark:text-white pt-2">10. Children’s Privacy</h5>
+        <p>Book Me App is not intended for anyone under 16 years old. We do not knowingly collect their information.</p>
+
+        <h5 className="font-bold text-black dark:text-white pt-2">11. Third-Party Services</h5>
+        <p>The app may integrate with other services (e.g., payment providers, YouTube, ad networks). Each has its own privacy policy—please review them.</p>
+
+        <h5 className="font-bold text-black dark:text-white pt-2">12. Policy Updates</h5>
+        <p>We may update this Privacy Policy periodically. The latest version will always be posted on <a href="http://www.se-mogroup.com" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-color)] underline">www.se-mogroup.com</a>.</p>
+
+        <h5 className="font-bold text-black dark:text-white pt-2">13. Contact Us</h5>
+        <p>For questions or concerns:</p>
         <p>📧 <a href="mailto:info@se-mogroup.com" className="text-[var(--accent-color)] underline">info@se-mogroup.com</a></p>
         <p>🌐 <a href="http://www.se-mogroup.com" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-color)] underline">www.se-mogroup.com</a></p>
     </LegalContentWrapper>
 );
 
+
 const FaqContent: React.FC = () => (
     <LegalContentWrapper>
+        <h4 className="font-bold text-lg text-black dark:text-white">💬 FREQUENTLY ASKED QUESTIONS (FAQ)</h4>
         <div className="space-y-4">
             <div>
                 <h5 className="font-bold text-black dark:text-white">1. What is Book Me App?</h5>
-                <p>Book Me App is a platform that connects independent hustlers (artists, makeup artists, etc.) with clients who need their services.</p>
+                <p>Book Me App connects independent hustlers—artists, stylists, caterers, and more—with clients looking for their services.</p>
             </div>
             <div>
-                <h5 className="font-bold text-black dark:text-white">3. Is Book Me App free to use?</h5>
-                <p>Yes, the app is free to download and use with ads. You can upgrade to Premium (R150/month) to remove ads and get a Gold Verification Tick.</p>
+                <h5 className="font-bold text-black dark:text-white">2. How do I create an account?</h5>
+                <p>Sign up using email or phone number, choose your role (to get booked or to book someone), and complete your profile with photos, videos, and bio details.</p>
             </div>
             <div>
-                <h5 className="font-bold text-black dark:text-white">4. What is the Gold Verification Tick?</h5>
-                <p>The Gold Tick is given to Premium users. It shows that your account is verified, trusted, and part of the premium community.</p>
-            </div>
-             <div>
-                <h5 className="font-bold text-black dark:text-white">8. What if someone doesn’t show up or I get scammed?</h5>
-                <p>We encourage users to communicate clearly before booking. If you suspect a scam, report or block the user immediately. Our support team will review all reports.</p>
+                <h5 className="font-bold text-black dark:text-white">3. Is it free to use?</h5>
+                <p>Yes!<br/>Book Me App is free.<br/>However, free users see ads. You can go Premium (R150/month) for an ad-free experience and a Gold Verification Tick.</p>
             </div>
             <div>
-                <h5 className="font-bold text-black dark:text-white">14. Where can I get help or contact support?</h5>
-                <p>You can reach our support team at: 📧 info@se-mogroup.com</p>
+                <h5 className="font-bold text-black dark:text-white">4. What is the Gold Tick?</h5>
+                <p>The Gold Verification Tick is for Premium users — it verifies your status, removes ads, and boosts your visibility.</p>
             </div>
+            <div>
+                <h5 className="font-bold text-black dark:text-white">5. How do I upgrade to Premium?</h5>
+                <p>Go to Settings → Upgrade to Premium and follow the payment process. Your plan renews monthly.</p>
+            </div>
+            <div>
+                <h5 className="font-bold text-black dark:text-white">6. Can I cancel Premium?</h5>
+                <p>Yes. You can cancel anytime in Settings. You’ll stay Premium until your current billing cycle ends.</p>
+            </div>
+            <div>
+                <h5 className="font-bold text-black dark:text-white">7. How do bookings work?</h5>
+                <p>If you’re a client:</p>
+                <ul className="list-disc list-inside space-y-1 pl-4">
+                    <li>Search by name, category, or location.</li>
+                    <li>View a provider’s profile.</li>
+                    <li>Send a booking request with date, time, and budget.</li>
+                </ul>
+                <p>If you’re a service provider, you can accept, reject, or chat about the booking.</p>
+            </div>
+            <div>
+                <h5 className="font-bold text-black dark:text-white">8. What if I’m scammed or someone doesn’t show up?</h5>
+                <p>Use the Report or Block options immediately.<br/>Our team reviews reports and may suspend or remove users violating terms.</p>
+            </div>
+            <div>
+                <h5 className="font-bold text-black dark:text-white">9. Can I post videos or reels?</h5>
+                <p>Yes! Upload videos or reels to show your work and attract clients.<br/>Reels appear in the Feed and can be liked, shared, or reposted.</p>
+            </div>
+            <div>
+                <h5 className="font-bold text-black dark:text-white">10. What services are allowed?</h5>
+                <p>Any legal service, including:</p>
+                <ul className="list-disc list-inside space-y-1 pl-4">
+                    <li>Music & entertainment</li>
+                    <li>Makeup & hair</li>
+                    <li>Photography & events</li>
+                    <li>Catering, decor, or creative freelancing</li>
+                </ul>
+            </div>
+            <div>
+                <h5 className="font-bold text-black dark:text-white">11. Can I block or report users?</h5>
+                <p>Yes, tap Block or Report on any user’s profile to stop contact or flag misconduct.</p>
+            </div>
+            <div>
+                <h5 className="font-bold text-black dark:text-white">12. Are my details secure?</h5>
+                <p>Yes, we protect your information with encryption and strict privacy measures.<br/>See our full Privacy Policy above.</p>
+            </div>
+            <div>
+                <h5 className="font-bold text-black dark:text-white">13. I forgot my password.</h5>
+                <p>Tap “Forgot Password?” on the login screen to receive a reset link by email or SMS.</p>
+            </div>
+            <div>
+                <h5 className="font-bold text-black dark:text-white">14. How do I contact support?</h5>
+                <p>📧 info@se-mogroup.com<br/>🌐 www.se-mogroup.com</p>
+            </div>
+            <div>
+                <h5 className="font-bold text-black dark:text-white">15. Who owns Book Me App?</h5>
+                <p>Book Me App is developed and managed by SE-MO Group (Pty) Ltd, proudly based in South Africa, dedicated to empowering local hustlers and independent creators.</p>
+            </div>
+        </div>
+        <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700 text-center text-xs text-gray-500">
+            <p>✅ End of Document</p>
+            <p>© 2025 SE-MO Group (Pty) Ltd – All Rights Reserved.</p>
+            <p>Book Me App is a registered digital platform under SE-MO Group.</p>
         </div>
     </LegalContentWrapper>
 );
+
 
 const SubscriptionConfirmationModal: React.FC<{ onClose: () => void; onConfirm: () => void; }> = ({ onClose, onConfirm }) => (
     <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fade-in">

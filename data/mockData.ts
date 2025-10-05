@@ -495,8 +495,8 @@ export let POSTS: Post[] = [
     timestamp: '2h ago',
     music: 'Amapiano - Asibe Happy',
     comments: [
-        { id: 'c1-1', user: 'Thando Nkosi', userId: '2', profileImage: 'https://picsum.photos/seed/thando/200', text: 'Looks amazing! 🔥'},
-        { id: 'c1-2', user: 'Ayanda Dlamini', userId: '5', profileImage: 'https://picsum.photos/seed/ayanda/200', text: 'Vibes!'},
+        { id: 'c1-1', user: 'Thando Nkosi', userId: '2', profileImage: 'https://picsum.photos/seed/thando/200', text: 'Looks amazing! 🔥', likes: 12, isLiked: true},
+        { id: 'c1-2', user: 'Ayanda Dlamini', userId: '5', profileImage: 'https://picsum.photos/seed/ayanda/200', text: 'Vibes!', likes: 5, isLiked: false},
     ],
   },
   {
@@ -509,7 +509,7 @@ export let POSTS: Post[] = [
     timestamp: '5h ago',
     music: 'Wedding - Romantic Ballad',
     comments: [
-        { id: 'c2-1', user: 'Zola Williams', userId: '6', profileImage: 'https://picsum.photos/seed/zola/200', text: 'Absolutely stunning, Lethabo!'},
+        { id: 'c2-1', user: 'Zola Williams', userId: '6', profileImage: 'https://picsum.photos/seed/zola/200', text: 'Absolutely stunning, Lethabo!', likes: 22, isLiked: true},
     ],
   },
     {
@@ -530,7 +530,7 @@ export let POSTS: Post[] = [
     commentsCount: 1,
     timestamp: '1d ago',
     comments: [
-         { id: 'c3-1', user: 'Test Client', userId: 'client-test', profileImage: 'https://picsum.photos/seed/client/200', text: 'Thanks for the great service!'},
+         { id: 'c3-1', user: 'Test Client', userId: 'client-test', profileImage: 'https://picsum.photos/seed/client/200', text: 'Thanks for the great service!', likes: 2, isLiked: false},
     ],
   },
     {
@@ -714,8 +714,8 @@ export let REELS: Reel[] = [
             artist: 'Kabza De Small & DJ Maphorisa'
         },
         comments: [
-            { id: 'cr1-1', user: 'Neo Beats', userId: '14', profileImage: 'https://picsum.photos/seed/neo/200', text: 'This mix is fire!'},
-            { id: 'cr1-2', user: 'Test Client', userId: 'client-test', profileImage: 'https://picsum.photos/seed/client/200', text: 'Need you for my next party!'},
+            { id: 'cr1-1', user: 'Neo Beats', userId: '14', profileImage: 'https://picsum.photos/seed/neo/200', text: 'This mix is fire!', likes: 25, isLiked: false},
+            { id: 'cr1-2', user: 'Test Client', userId: 'client-test', profileImage: 'https://picsum.photos/seed/client/200', text: 'Need you for my next party!', likes: 8, isLiked: true},
         ],
     },
     {
@@ -743,7 +743,7 @@ export let REELS: Reel[] = [
             artist: 'Wedding Songs Crew'
         },
         comments: [
-             { id: 'cr3-1', user: 'Zola Williams', userId: '6', profileImage: 'https://picsum.photos/seed/zola/200', text: 'I can\'t wait! It looks perfect.'},
+             { id: 'cr3-1', user: 'Zola Williams', userId: '6', profileImage: 'https://picsum.photos/seed/zola/200', text: 'I can\'t wait! It looks perfect.', likes: 15, isLiked: false},
         ],
     }
 ];
@@ -1173,4 +1173,19 @@ export const findOrCreateUserByPhone = (phone: string, role: UserRole): User => 
     };
     USERS.push(newUser);
     return newUser;
+};
+
+export const toggleCommentLike = (commentId: string) => {
+    const allComments = [...POSTS.flatMap(p => p.comments), ...REELS.flatMap(r => r.comments)];
+    const comment = allComments.find(c => c.id === commentId);
+
+    if (comment) {
+        if (comment.isLiked) {
+            comment.likes -= 1;
+            comment.isLiked = false;
+        } else {
+            comment.likes += 1;
+            comment.isLiked = true;
+        }
+    }
 };

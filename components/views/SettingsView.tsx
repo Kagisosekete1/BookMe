@@ -65,8 +65,7 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onLogout }) => {
                  </SettingsSection>
 
                  <SettingsSection title="Legal & Policies">
-                    <SettingsItem onClick={() => navigate('/settings/terms-of-use')} icon="fa-file-contract" title="Terms of Use" isFirst />
-                    <SettingsItem onClick={() => navigate('/settings/privacy-policy')} icon="fa-user-secret" title="Privacy Policy" />
+                    <SettingsItem onClick={() => navigate('/settings/privacy-policy')} icon="fa-user-secret" title="Privacy Policy" isFirst />
                     <SettingsItem onClick={() => navigate('/settings/faq')} icon="fa-question-circle" title="FAQ" isLast />
                 </SettingsSection>
 

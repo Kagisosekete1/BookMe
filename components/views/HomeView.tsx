@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { POSTS, getTalentByPost, addCommentToPost, TALENTS } from '../../data/mockData';
-import { Post, User, Comment as CommentType, Reel } from '../../types';
+import { POSTS, getTalentByPost, addCommentToPost, TALENTS, toggleCommentLike } from '../../data/mockData';
+import { Post, User, Comment as CommentType } from '../../types';
 
 // --- Reusable Modals ---
 
@@ -16,16 +16,39 @@ const ImageViewerModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({
     </div>
 );
 
+interface ReportModalProps {
+    itemType: 'post';
+    onClose: () => void;
+    onSubmit: () => void;
+}
+const ReportModal: React.FC<ReportModalProps> = ({ itemType, onClose, onSubmit }) => {
+    const [reason, setReason] = useState('');
+    const reasons = ['Spam', 'Inappropriate Content', 'Impersonation', 'Scam or Fraud', 'Other'];
+    return (
+        <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[70]" onClick={onClose}>
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl p-6 w-full max-w-sm m-4" onClick={e => e.stopPropagation()}>
+                <h3 className="text-lg font-bold mb-4 text-center">Report {itemType}</h3>
+                <div className="space-y-2 mb-4">{reasons.map(r => (<label key={r} className="flex items-center"><input type="radio" name="reason" value={r} checked={reason === r} onChange={() => setReason(r)} className="h-4 w-4 text-[var(--accent-color)] focus:ring-[var(--accent-color)] border-gray-300" /><span className="ml-3 text-sm">{r}</span></label>))}</div>
+                <textarea rows={3} placeholder="Additional details (optional)..." className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2 outline-none" />
+                <div className="mt-4 flex justify-end space-x-2">
+                    <button onClick={onClose} className="border border-gray-300 dark:border-gray-600 font-bold py-2 px-4 rounded-lg text-sm">Cancel</button>
+                    <button onClick={onSubmit} disabled={!reason} className="border bg-red-500 text-white font-bold py-2 px-4 rounded-lg text-sm disabled:opacity-50">Submit Report</button>
+                </div>
+            </div>
+        </div>
+    );
+};
 
 interface CommentsModalProps {
-    post: Post | Reel;
+    post: Post;
     currentUser: User;
     onClose: () => void;
     onAddComment: (text: string) => void;
     onViewImage: (url: string) => void;
+    onLikeComment: (commentId: string) => void;
 }
 
-const CommentsModal: React.FC<CommentsModalProps> = ({ post, currentUser, onClose, onAddComment, onViewImage }) => {
+const CommentsModal: React.FC<CommentsModalProps> = ({ post, currentUser, onClose, onAddComment, onViewImage, onLikeComment }) => {
     const [newComment, setNewComment] = useState('');
 
     const handlePostComment = () => {
@@ -36,8 +59,8 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ post, currentUser, onClos
     };
     
     return (
-        <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-end z-50" onClick={onClose}>
-            <div className="bg-white dark:bg-gray-900 rounded-t-2xl shadow-xl w-full max-h-[75%] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="absolute inset-0 bg-black bg-opacity-60 flex flex-col justify-start pt-28 z-50" onClick={onClose}>
+            <div className="bg-white dark:bg-gray-900 rounded-b-2xl shadow-xl w-full max-h-[75%] flex flex-col" onClick={(e) => e.stopPropagation()}>
                 <div className="text-center py-3 border-b border-gray-200 dark:border-gray-700 relative">
                     <h3 className="text-lg font-bold">Comments</h3>
                     <button onClick={onClose} className="absolute top-2 right-4 text-2xl">&times;</button>
@@ -46,11 +69,11 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ post, currentUser, onClos
                     {post.comments.map(comment => {
                         const isTalent = TALENTS.some(t => t.id === comment.userId);
                         return (
-                            <div key={comment.id} className="flex items-start space-x-3">
+                            <div key={comment.id} className="flex items-start space-x-3 group">
                                 <button onClick={() => onViewImage(comment.profileImage)} className="shrink-0">
                                     <img src={comment.profileImage} alt={comment.user} className="w-8 h-8 rounded-full" />
                                 </button>
-                                <div>
+                                <div className="flex-grow">
                                     <p>
                                         {isTalent ? (
                                             <Link to={`/talent/${comment.userId}`} onClick={onClose} className="font-bold text-sm hover:underline">{comment.user}</Link>
@@ -60,7 +83,11 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ post, currentUser, onClos
                                         {' '}
                                         <span className="text-sm text-gray-700 dark:text-gray-300">{comment.text}</span>
                                     </p>
+                                    {comment.likes > 0 && <span className="text-xs text-gray-500 mt-1">{comment.likes} likes</span>}
                                 </div>
+                                <button onClick={() => onLikeComment(comment.id)} className="shrink-0 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity">
+                                     <i className={`${comment.isLiked ? 'fas text-red-500' : 'far'} fa-heart`}></i>
+                                </button>
                             </div>
                         );
                     })}
@@ -91,7 +118,7 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ post, currentUser, onClos
 };
 
 
-const PostCard: React.FC<{ post: Post; onOpenComments: (post: Post) => void }> = ({ post, onOpenComments }) => {
+const PostCard: React.FC<{ post: Post; onOpenComments: (post: Post) => void; onReport: () => void; }> = ({ post, onOpenComments, onReport }) => {
     const talent = getTalentByPost(post);
     const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(post.likes);
@@ -100,13 +127,18 @@ const PostCard: React.FC<{ post: Post; onOpenComments: (post: Post) => void }> =
 
     return (
         <div className="border-b border-gray-200 dark:border-gray-800 py-4">
-            <Link to={`/talent/${talent.id}`} className="flex items-center px-4 mb-3">
-                <img src={talent.profileImage} alt={talent.name} className="w-10 h-10 rounded-full mr-3" />
-                <div>
-                    <p className="font-bold">{talent.name}</p>
-                    <p className="text-xs text-gray-500">{post.timestamp}</p>
-                </div>
-            </Link>
+            <div className="flex items-center px-4 mb-3">
+                <Link to={`/talent/${talent.id}`} className="flex items-center flex-grow min-w-0">
+                    <img src={talent.profileImage} alt={talent.name} className="w-10 h-10 rounded-full mr-3" />
+                    <div>
+                        <p className="font-bold truncate">{talent.name}</p>
+                        <p className="text-xs text-gray-500">{post.timestamp}</p>
+                    </div>
+                </Link>
+                 <button onClick={onReport} className="text-gray-500 w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 shrink-0">
+                    <i className="fas fa-ellipsis-h"></i>
+                </button>
+            </div>
             <p className="px-4 mb-3">{post.text}</p>
             {post.imageUrl && (
                 <img src={post.imageUrl} alt="Post content" className="w-full h-auto" />
@@ -158,6 +190,7 @@ interface HomeViewProps {
 const HomeView: React.FC<HomeViewProps> = ({ currentUser }) => {
     const [activeCommentsPost, setActiveCommentsPost] = useState<Post | null>(null);
     const [viewerImageUrl, setViewerImageUrl] = useState<string | null>(null);
+    const [reportPost, setReportPost] = useState<Post | null>(null);
 
     const handleAddComment = (text: string) => {
         if (!activeCommentsPost) return;
@@ -168,22 +201,30 @@ const HomeView: React.FC<HomeViewProps> = ({ currentUser }) => {
             userId: currentUser.id,
             profileImage: currentUser.profileImage,
             text,
+            likes: 0,
+            isLiked: false,
         };
         
-        // This mutates the global POSTS array and the object within it
         addCommentToPost(activeCommentsPost.id, newComment);
-
-        // Create a new object reference to trigger react's state update,
-        // ensuring the modal re-renders with the latest comment.
         setActiveCommentsPost({ ...activeCommentsPost });
     };
 
+    const handleLikeComment = (commentId: string) => {
+        if (!activeCommentsPost) return;
+        toggleCommentLike(commentId);
+        setActiveCommentsPost({ ...activeCommentsPost });
+    };
+
+    const handleReportSubmit = () => {
+        setReportPost(null);
+        alert('Thank you. Your report has been submitted.');
+    };
 
     return (
         <div className="h-full overflow-y-auto relative">
             {/* Posts Feed */}
             {POSTS.flatMap((post, index) => {
-                const content = [<PostCard key={post.id} post={post} onOpenComments={setActiveCommentsPost}/>];
+                const content = [<PostCard key={post.id} post={post} onOpenComments={setActiveCommentsPost} onReport={() => setReportPost(post)} />];
                 // Show an ad after every 4th post for free users
                 if (!currentUser.isPremium && (index + 1) % 4 === 0) {
                     content.push(<AdCard key={`ad-${index}`} />);
@@ -198,7 +239,12 @@ const HomeView: React.FC<HomeViewProps> = ({ currentUser }) => {
                     onClose={() => setActiveCommentsPost(null)}
                     onAddComment={handleAddComment}
                     onViewImage={setViewerImageUrl}
+                    onLikeComment={handleLikeComment}
                 />
+            )}
+            
+            {reportPost && (
+                <ReportModal itemType="post" onClose={() => setReportPost(null)} onSubmit={handleReportSubmit} />
             )}
 
             {viewerImageUrl && (
