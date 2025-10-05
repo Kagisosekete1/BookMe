@@ -1,10 +1,22 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { CONVERSATIONS, getTalentByConversation } from '../../data/mockData';
-import { Conversation } from '../../types';
+import { CONVERSATIONS, getTalentByConversation, USERS } from '../../data/mockData';
+import { Conversation, User } from '../../types';
+
+const getVerificationIcon = (userOrTalent: { verificationTier?: 'gold' | 'blue', isPremium?: boolean }) => {
+    if (userOrTalent.isPremium) {
+        return <i className={`fas fa-gem text-yellow-500 ml-1.5 text-xs`} title="Premium Subscriber"></i>;
+    }
+    if (userOrTalent.verificationTier) {
+        const color = userOrTalent.verificationTier === 'gold' ? 'text-yellow-400' : 'text-blue-500';
+        return <i className={`fas fa-check-circle ${color} ml-1.5 text-xs`} title="Verified"></i>;
+    }
+    return null;
+};
 
 const ConversationCard: React.FC<{ conversation: Conversation }> = ({ conversation }) => {
     const talent = getTalentByConversation(conversation);
+    const user = USERS.find(u => u.talentId === talent?.id);
     if (!talent) return null;
 
     return (
@@ -14,8 +26,7 @@ const ConversationCard: React.FC<{ conversation: Conversation }> = ({ conversati
                 <div className="flex justify-between items-center">
                     <p className={`font-bold truncate ${conversation.unreadCount > 0 ? 'text-black dark:text-white' : ''} flex items-center`}>
                         {talent.name}
-                        {talent.verificationTier === 'gold' && <i className="fas fa-star text-yellow-500 ml-1.5 text-xs"></i>}
-                        {talent.verificationTier === 'blue' && <i className="fas fa-star text-blue-500 ml-1.5 text-xs"></i>}
+                        {getVerificationIcon({ ...talent, isPremium: user?.isPremium })}
                     </p>
                     <p className="text-xs text-gray-500 shrink-0 ml-2">{conversation.lastMessageTimestamp}</p>
                 </div>

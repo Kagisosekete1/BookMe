@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getConversationById, getTalentById, markConversationAsRead, addMessageToConversation } from '../../data/mockData';
-import { Message } from '../../types';
+import { getConversationById, getTalentById, markConversationAsRead, addMessageToConversation, USERS } from '../../data/mockData';
+import { Message, User } from '../../types';
 
 
 const ImageViewerModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ imageUrl, onClose }) => (
@@ -15,12 +15,24 @@ const ImageViewerModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({
     </div>
 );
 
+const getVerificationIcon = (userOrTalent: { verificationTier?: 'gold' | 'blue', isPremium?: boolean }) => {
+    if (userOrTalent.isPremium) {
+        return <i className={`fas fa-gem text-yellow-500 ml-2`} title="Premium Subscriber"></i>;
+    }
+    if (userOrTalent.verificationTier) {
+        const color = userOrTalent.verificationTier === 'gold' ? 'text-yellow-400' : 'text-blue-500';
+        return <i className={`fas fa-check-circle ${color} ml-2`} title="Verified"></i>;
+    }
+    return null;
+};
+
 
 const ChatView: React.FC = () => {
     const { chatId } = useParams<{ chatId: string }>();
     const navigate = useNavigate();
     const conversation = getConversationById(chatId);
     const talent = getTalentById(conversation?.talentId);
+    const user = USERS.find(u => u.talentId === talent?.id);
     
     const [messages, setMessages] = useState<Message[]>(conversation?.messages || []);
     const [newMessage, setNewMessage] = useState('');
@@ -68,8 +80,7 @@ const ChatView: React.FC = () => {
                     <Link to={`/talent/${talent.id}`} className="flex-grow min-w-0">
                         <h2 className="font-bold text-lg flex items-center truncate">
                             <span className="truncate">{talent.name}</span>
-                            {talent.verificationTier === 'gold' && <i className="fas fa-star text-yellow-500 ml-2"></i>}
-                            {talent.verificationTier === 'blue' && <i className="fas fa-star text-blue-500 ml-2"></i>}
+                            {getVerificationIcon({ ...talent, isPremium: user?.isPremium })}
                         </h2>
                     </Link>
                 </div>

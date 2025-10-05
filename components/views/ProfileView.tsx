@@ -3,10 +3,15 @@ import { Link } from 'react-router-dom';
 import { User, Post, Reel, UserRole, Comment as CommentType } from '../../types';
 import { getPostsByTalentId, getReelsByTalentId, getTalentById, addCommentToPost, getTalentByPost, TALENTS } from '../../data/mockData';
 
-const getVerificationIcon = (tier?: 'gold' | 'blue') => {
-    if (!tier) return null;
-    const color = tier === 'gold' ? 'text-yellow-500' : 'text-blue-500';
-    return <i className={`fas fa-star ${color} ml-1.5 text-xs`}></i>;
+const getVerificationIcon = (user: { verificationTier?: 'gold' | 'blue', isPremium?: boolean }) => {
+    if (user.isPremium) {
+        return <i className={`fas fa-gem text-yellow-500 ml-1.5 text-sm`} title="Premium Subscriber"></i>;
+    }
+    if (user.verificationTier) {
+        const color = user.verificationTier === 'gold' ? 'text-yellow-400' : 'text-blue-500';
+        return <i className={`fas fa-check-circle ${color} ml-1.5 text-sm`} title="Verified"></i>;
+    }
+    return null;
 };
 
 // --- Modals and Sub-components ---
@@ -275,7 +280,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ currentUser, onUpdateProfile 
             <div className="p-4 border-b border-gray-200 dark:border-gray-800 shrink-0">
                  <div className="flex items-center justify-between mb-4 pt-12"><p className="text-xl font-bold">@{currentUser.username}</p><div className="flex items-center space-x-4"><Link to="/settings" className="text-2xl"><i className="fas fa-bars"></i></Link></div></div>
                 <div className="flex items-center mt-4"><img src={currentUser.profileImage} alt={currentUser.name} className="w-20 h-20 rounded-full" /><div className="flex flex-grow justify-around text-center">{currentUser.role === UserRole.Talent && talent ? (<><div><p className="font-bold text-lg">{userPosts.length}</p><p className="text-sm text-gray-500">Posts</p></div><div><p className="font-bold text-lg">{talent.reviewsCount}</p><p className="text-sm text-gray-500">Jobs</p></div><div><p className="font-bold text-lg flex items-center justify-center"><i className="fas fa-star text-yellow-500 mr-1"></i>{talent.rating.toFixed(1)}</p><p className="text-sm text-gray-500">Ratings</p></div></>) : (<><div><p className="font-bold text-lg">{currentUser.followersCount}</p><p className="text-sm text-gray-500">Booked</p></div><div><p className="font-bold text-lg flex items-center justify-center"><i className="fas fa-star text-yellow-500 mr-1"></i>4.5</p><p className="text-sm text-gray-500">Ratings</p></div></>)}</div></div>
-                <div className="mt-4"><p className="font-bold text-sm flex items-center">{currentUser.name}{currentUser.role === UserRole.Talent && getVerificationIcon(talent?.verificationTier)}</p>{currentUser.role === UserRole.Talent && currentUser.profession && (<p className="text-xs text-gray-500">{currentUser.profession}</p>)}<p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap mt-1">{currentUser.bio}</p></div>
+                <div className="mt-4"><p className="font-bold text-sm flex items-center">{currentUser.name}{getVerificationIcon(currentUser)}</p>{currentUser.role === UserRole.Talent && currentUser.profession && (<p className="text-xs text-gray-500">{currentUser.profession}</p>)}<p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap mt-1">{currentUser.bio}</p></div>
                 <div className="flex mt-4 space-x-2"><button onClick={() => setIsEditModalOpen(true)} className="w-full border-2 border-gray-300 dark:border-gray-600 font-bold py-2 px-4 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Edit Profile</button></div>
             </div>
             <div className="flex border-b border-gray-200 dark:border-gray-800 shrink-0">

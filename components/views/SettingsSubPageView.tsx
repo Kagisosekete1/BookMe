@@ -21,6 +21,7 @@ const pageIdToTitle: { [key: string]: string } = {
     '2fa-sms': 'SMS Verification Setup',
     'login-alerts': 'Login Alerts',
     'identity-confirmation': 'Identity Confirmation',
+    'subscription': 'Book Me Premium',
 };
 
 // --- Reusable Components ---
@@ -63,10 +64,15 @@ const SettingsItem: React.FC<{ icon: string; title: string; subtitle?: string; i
     );
 };
 
-const getVerificationIcon = (tier?: 'gold' | 'blue') => {
-    if (!tier) return null;
-    const color = tier === 'gold' ? 'text-yellow-500' : 'text-blue-500';
-    return <i className={`fas fa-star ${color} ml-1.5 text-xs`}></i>;
+const getVerificationIcon = (userOrTalent: { verificationTier?: 'gold' | 'blue', isPremium?: boolean }) => {
+    if (userOrTalent.isPremium) {
+        return <i className={`fas fa-gem text-yellow-500 ml-1.5 text-xs`} title="Premium Subscriber"></i>;
+    }
+    if (userOrTalent.verificationTier) {
+        const color = userOrTalent.verificationTier === 'gold' ? 'text-yellow-400' : 'text-blue-500';
+        return <i className={`fas fa-check-circle ${color} ml-1.5 text-xs`} title="Verified"></i>;
+    }
+    return null;
 };
 
 const ToggleItem: React.FC<{ title: string; subtitle: string; isLast?: boolean; checked?: boolean; onChange?: () => void; }> = ({ title, subtitle, isLast, checked, onChange }) => (
@@ -83,6 +89,71 @@ const ToggleItem: React.FC<{ title: string; subtitle: string; isLast?: boolean; 
 );
 
 // --- Content Components for Each Page ---
+
+const SubscriptionConfirmationModal: React.FC<{ onClose: () => void; onConfirm: () => void; }> = ({ onClose, onConfirm }) => (
+    <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fade-in">
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl p-6 w-full max-w-sm m-4 text-center" onClick={e => e.stopPropagation()}>
+            <i className="fas fa-gem text-yellow-500 text-4xl mb-3"></i>
+            <h3 className="text-lg font-bold mb-2">Confirm Subscription</h3>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">You're subscribing to Book Me Premium for R150.00/month. Your primary payment method will be charged.</p>
+            <div className="mt-6 flex flex-col space-y-2">
+                 <button onClick={onConfirm} className="w-full border-2 border-[var(--accent-color)] bg-[var(--accent-color)] text-white font-bold py-3 px-4 rounded-lg text-md hover:opacity-90 transition-opacity">Confirm Payment</button>
+                <button onClick={onClose} className="w-full text-gray-600 dark:text-gray-300 font-bold py-2 px-4 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">Cancel</button>
+            </div>
+        </div>
+    </div>
+);
+
+
+const SubscriptionContent: React.FC<{ user: User; onSubscribe: () => void; }> = ({ user, onSubscribe }) => {
+    const [isConfirming, setIsConfirming] = useState(false);
+
+    const handleConfirm = () => {
+        onSubscribe();
+        setIsConfirming(false);
+    };
+
+    return (
+        <>
+            <div className="space-y-8">
+                <div className="bg-gradient-to-br from-yellow-300 to-orange-400 dark:from-yellow-600 dark:to-orange-700 rounded-lg p-6 text-center shadow-lg">
+                    <i className="fas fa-gem text-white text-5xl mb-3"></i>
+                    <h2 className="text-2xl font-bold text-white">Book Me Premium</h2>
+                    {user.isPremium ? (
+                        <p className="text-white opacity-90 mt-1">You are a Premium member. Thank you for your support!</p>
+                    ) : (
+                        <p className="text-white opacity-90 mt-1">Unlock exclusive features and an ad-free experience.</p>
+                    )}
+                </div>
+
+                <SettingsSection title="Premium Benefits">
+                    <div className="p-4 space-y-4">
+                        <div className="flex items-center"><i className="fas fa-check-circle text-green-500 w-6 text-center mr-3"></i><p>Gold Verification Badge</p></div>
+                        <div className="flex items-center"><i className="fas fa-check-circle text-green-500 w-6 text-center mr-3"></i><p>Ad-Free Experience</p></div>
+                        <div className="flex items-center"><i className="fas fa-check-circle text-green-500 w-6 text-center mr-3"></i><p>Priority Support</p></div>
+                        <div className="flex items-center"><i className="fas fa-check-circle text-green-500 w-6 text-center mr-3"></i><p>Enhanced Profile Visibility</p></div>
+                    </div>
+                </SettingsSection>
+
+                {user.isPremium ? (
+                     <SettingsSection title="Manage Subscription">
+                         <SettingsItem icon="fa-credit-card" title="Payment Method" subtitle="Mastercard **** 1234" />
+                         <SettingsItem icon="fa-file-invoice-dollar" title="Billing History" />
+                         <SettingsItem icon="fa-times-circle" title="Cancel Subscription" isLast />
+                     </SettingsSection>
+                ) : (
+                    <div className="pt-2">
+                        <button onClick={() => setIsConfirming(true)} className="w-full border-2 border-[var(--accent-color)] text-[var(--accent-color)] font-bold py-3 px-4 rounded-lg text-lg hover:bg-[var(--accent-color)] hover:text-white transition-colors">
+                            Subscribe for R150.00/month
+                        </button>
+                    </div>
+                )}
+            </div>
+            {isConfirming && <SubscriptionConfirmationModal onClose={() => setIsConfirming(false)} onConfirm={handleConfirm} />}
+        </>
+    );
+};
+
 
 const AppearanceContent: React.FC<{ theme: 'light' | 'dark', onSetTheme: (theme: 'light' | 'dark') => void, themeAccent: ThemeAccent, onSetThemeAccent: (accent: ThemeAccent) => void }> = ({ theme, onSetTheme, themeAccent, onSetThemeAccent }) => {
     const accents: { name: ThemeAccent, color: string }[] = [
@@ -360,7 +431,7 @@ const PreviousTalentsContent: React.FC<{ onViewImage: (url: string) => void }> =
                             <img src={talent!.profileImage} alt={talent!.name} className="w-12 h-12 rounded-full" />
                         </button>
                         <div onClick={() => navigate(`/talent/${talent!.id}`)} className="flex-grow cursor-pointer">
-                            <p className="font-bold text-sm flex items-center">{talent!.name} {getVerificationIcon(talent!.verificationTier)}</p>
+                            <p className="font-bold text-sm flex items-center">{talent!.name} {getVerificationIcon(talent!)}</p>
                             <p className="text-xs text-gray-500">{talent!.hustles[0]}</p>
                             <p className="text-xs text-gray-400 mt-1">{`Booked on ${tx.date}`}</p>
                         </div>
@@ -791,6 +862,8 @@ const SettingsSubPageView: React.FC<SettingsSubPageProps> = ({ user, onUpdatePro
                 return <SmsSetupContent user={user} />;
             case 'login-alerts':
                 return <LoginAlertsContent />;
+            case 'subscription':
+                return <SubscriptionContent user={user} onSubscribe={() => onUpdateProfile({ isPremium: true })} />;
             default:
                 return (
                     <div className="text-center text-gray-500 dark:text-gray-400 py-20">

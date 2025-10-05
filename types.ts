@@ -84,6 +84,7 @@ export interface User {
   profession?: string;
   verificationTier?: 'gold' | 'blue';
   phoneNumber?: string;
+  isPremium?: boolean;
 }
 
 export interface LoginSession {

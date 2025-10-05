@@ -853,6 +853,7 @@ export let USERS: User[] = [
         postsCount: 0,
         followersCount: 10,
         followingCount: 25,
+        isPremium: false,
     },
     { 
         id: 'talent-sipho-moyo',
@@ -870,11 +871,13 @@ export let USERS: User[] = [
         profession: 'DJ',
         verificationTier: 'gold',
         phoneNumber: '+27821234567',
+        isPremium: true,
     },
     { 
         id: 'client-sarah-p',
         email: 'sarah.p@email.com', password: 'password', role: UserRole.Client, name: 'Sarah P.', username: 'sarah_p',
         profileImage: 'https://picsum.photos/seed/sarahp/200', bio: 'Event enthusiast.', postsCount: 0, followersCount: 5, followingCount: 12,
+        isPremium: false,
     },
     { 
         id: 'client-john-s',
@@ -882,33 +885,39 @@ export let USERS: User[] = [
         profileImage: 'https://picsum.photos/seed/johns/200', bio: 'Startup founder.', postsCount: 0, followersCount: 20, followingCount: 8,
         verificationTier: 'blue',
         phoneNumber: '+27837654321',
+        isPremium: false,
     },
     { 
         id: 'client-jane-d',
         email: 'jane.d@email.com', password: 'password', role: UserRole.Client, name: 'Jane D.', username: 'jane_d',
         profileImage: 'https://picsum.photos/seed/janed/200', bio: 'Planning my dream wedding!', postsCount: 0, followersCount: 2, followingCount: 30,
+        isPremium: false,
     },
     { 
         id: 'client-premium-records',
         email: 'ar@premium.com', password: 'password', role: UserRole.Client, name: 'Premium Records A&R', username: 'premiumrecords',
         profileImage: 'https://picsum.photos/seed/premiumrecords/200', bio: 'Finding the next big star.', postsCount: 0, followersCount: 500, followingCount: 10,
         verificationTier: 'gold',
+        isPremium: false,
     },
      { 
         id: 'client-emily-t',
         email: 'emily.t@email.com', password: 'password', role: UserRole.Client, name: 'Emily T.', username: 'emily_t',
         profileImage: 'https://picsum.photos/seed/emilyt/200', bio: 'Mom of two, party planner.', postsCount: 0, followersCount: 8, followingCount: 15,
+        isPremium: false,
     },
     { 
         id: 'client-mike-r',
         email: 'mike.r@email.com', password: 'password', role: UserRole.Client, name: 'Mike R.', username: 'mike_r',
         profileImage: 'https://picsum.photos/seed/miker/200', bio: '', postsCount: 0, followersCount: 1, followingCount: 3,
+        isPremium: false,
     },
     { 
         id: 'client-corporate-events',
         email: 'events@corporate.com', password: 'password', role: UserRole.Client, name: 'Corporate Events Inc.', username: 'corporateevents',
         profileImage: 'https://picsum.photos/seed/corporateinc/200', bio: 'Professional event management.', postsCount: 0, followersCount: 150, followingCount: 80,
         verificationTier: 'gold',
+        isPremium: true,
     },
      ...Array.from({ length: 15 }, (_, i) => ({
         id: `client-new-${i}`,
@@ -923,6 +932,7 @@ export let USERS: User[] = [
         followersCount: (i % 5), 
         followingCount: (i % 10) + 1,
         verificationTier: i % 4 === 0 ? 'blue' as const : undefined,
+        isPremium: false,
     }))
 ];
 
@@ -948,7 +958,8 @@ export const addUser = (user: User): User | null => {
         postsCount: 0, 
         followersCount: 0, 
         followingCount: 0, 
-        profession: '' 
+        profession: '',
+        isPremium: false,
     };
 
     if (user.role === UserRole.Talent) {
@@ -1124,7 +1135,8 @@ export const findOrCreateUserByPhone = (phone: string, role: UserRole): User => 
         bio: '', 
         postsCount: 0, 
         followersCount: 0, 
-        followingCount: 0, 
+        followingCount: 0,
+        isPremium: false,
     };
     USERS.push(newUser);
     return newUser;

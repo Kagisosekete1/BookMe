@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { getTalentById, findOrCreateConversationByTalentId, getPostsByTalentId, getTalentByPost, addCommentToPost, TALENTS } from '../../data/mockData';
+import { getTalentById, findOrCreateConversationByTalentId, getPostsByTalentId, getTalentByPost, addCommentToPost, TALENTS, USERS } from '../../data/mockData';
 import { Post, User, Comment as CommentType } from '../../types';
 
 // --- Reusable Helper Components (defined here to avoid creating new files) ---
 
-const getVerificationIcon = (tier?: 'gold' | 'blue') => {
-    if (!tier) return null;
-    const color = tier === 'gold' ? 'text-yellow-500' : 'text-blue-500';
-    return <i className={`fas fa-star ${color} ml-2 text-base`}></i>;
+const getVerificationIcon = (userOrTalent: { verificationTier?: 'gold' | 'blue', isPremium?: boolean }) => {
+    if (userOrTalent.isPremium) {
+        return <i className={`fas fa-gem text-yellow-500 ml-2 text-base`} title="Premium Subscriber"></i>;
+    }
+    if (userOrTalent.verificationTier) {
+        const color = userOrTalent.verificationTier === 'gold' ? 'text-yellow-400' : 'text-blue-500';
+        return <i className={`fas fa-check-circle ${color} ml-2 text-base`} title="Verified"></i>;
+    }
+    return null;
 };
 
 const ImageViewerModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ imageUrl, onClose }) => (
@@ -93,6 +98,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, currentUser, on
 const TalentProfileView: React.FC = () => {
     const { talentId } = useParams<{ talentId: string }>();
     const talent = getTalentById(talentId);
+    const user = USERS.find(u => u.talentId === talentId);
     const navigate = useNavigate();
 
     // State
@@ -159,7 +165,7 @@ const TalentProfileView: React.FC = () => {
             <div className="flex-grow overflow-y-auto">
                 <div className="p-6 flex flex-col items-center text-center bg-white dark:bg-black">
                     <button onClick={() => setIsImageViewerOpen(true)}><img src={talent.profileImage} alt={talent.name} className="w-24 h-24 rounded-full mb-4 ring-4 ring-gray-200 dark:ring-gray-700" /></button>
-                    <h2 className="text-2xl font-bold flex items-center">{talent.name} {getVerificationIcon(talent.verificationTier)}</h2>
+                    <h2 className="text-2xl font-bold flex items-center">{talent.name} {getVerificationIcon({ ...talent, isPremium: user?.isPremium })}</h2>
                     <div className="flex items-center text-md mt-1 text-gray-500"><span className="text-yellow-500 mr-1">⭐</span><span className="font-semibold mr-2">{talent.rating.toFixed(1)}</span><span>({talent.reviewsCount} reviews)</span></div>
                     <p className="text-sm mt-3 max-w-md text-gray-600 dark:text-gray-400">{talent.bio}</p>
                     <div className="mt-4 w-full max-w-sm space-y-2"><button onClick={() => setIsBookingModalOpen(true)} className="w-full border-2 border-[var(--accent-color)] bg-[var(--accent-color)] text-white font-bold py-3 px-4 rounded-lg text-md">Book Now</button><div className="flex space-x-2"><button onClick={handleMessage} className="w-full border-2 border-gray-300 dark:border-gray-600 font-bold py-3 px-4 rounded-lg text-md">Message</button></div></div>

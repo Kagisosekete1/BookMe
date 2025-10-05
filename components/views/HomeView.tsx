@@ -128,6 +128,29 @@ const PostCard: React.FC<{ post: Post; onOpenComments: (post: Post) => void }> =
     );
 };
 
+const AdCard: React.FC = () => {
+    return (
+        <div className="border-b border-gray-200 dark:border-gray-800 py-4 px-4">
+            <div className="flex items-center mb-2">
+                <div className="w-10 h-10 rounded-full mr-3 bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                    <i className="fas fa-bullhorn text-gray-500"></i>
+                </div>
+                <div>
+                    <p className="font-bold">Your Next Favorite Brand</p>
+                    <p className="text-xs text-gray-500">Sponsored</p>
+                </div>
+            </div>
+            <div className="aspect-video bg-gray-300 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                <p className="text-gray-600 dark:text-gray-400 font-semibold">ADVERTISEMENT</p>
+            </div>
+            <p className="text-sm mt-2">Discover amazing products and services tailored just for you. Shop now and get exclusive discounts!</p>
+            <button className="mt-2 w-full text-sm font-bold border-2 border-[var(--accent-color)] text-[var(--accent-color)] py-2 px-4 rounded-lg hover:bg-[var(--accent-color)] hover:text-white transition-colors">
+                Learn More
+            </button>
+        </div>
+    );
+};
+
 interface HomeViewProps {
     currentUser: User;
 }
@@ -159,7 +182,14 @@ const HomeView: React.FC<HomeViewProps> = ({ currentUser }) => {
     return (
         <div className="h-full overflow-y-auto relative">
             {/* Posts Feed */}
-            {POSTS.map(post => <PostCard key={post.id} post={post} onOpenComments={setActiveCommentsPost}/>)}
+            {POSTS.flatMap((post, index) => {
+                const content = [<PostCard key={post.id} post={post} onOpenComments={setActiveCommentsPost}/>];
+                // Show an ad after every 4th post for free users
+                if (!currentUser.isPremium && (index + 1) % 4 === 0) {
+                    content.push(<AdCard key={`ad-${index}`} />);
+                }
+                return content;
+            })}
 
             {activeCommentsPost && (
                 <CommentsModal 

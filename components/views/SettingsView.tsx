@@ -48,6 +48,10 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onLogout }) => {
                     <SettingsItem onClick={() => navigate('/settings/account-center')} icon="fa-user-circle" title="Account Center" subtitle="Manage your connected experiences." isFirst isLast />
                 </SettingsSection>
 
+                <SettingsSection title="Book Me Premium">
+                    <SettingsItem onClick={() => navigate('/settings/subscription')} icon="fa-gem" title="Subscription" subtitle="Go Premium for an ad-free experience." isFirst isLast />
+                </SettingsSection>
+
                 <SettingsSection title="Preferences">
                     <SettingsItem 
                         onClick={() => navigate('/settings/appearance')}
