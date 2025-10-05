@@ -1,4 +1,5 @@
 
+
 import React, { useState, useRef, useMemo, useEffect } from 'react';
 import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { User, LoginSession, Transaction, UserRole, ThemeAccent } from '../../types';
@@ -29,6 +30,8 @@ const pageIdToTitle: { [key: string]: string } = {
     'subscription': 'Book Me Premium',
     'privacy-policy': 'Privacy Policy',
     'faq': 'Frequently Asked Questions',
+    'anti-notifications': 'Anti-notifications',
+    'activity-digest': 'Activity Digest',
 };
 
 // --- Reusable Components ---
@@ -706,6 +709,211 @@ const FaqPage: React.FC = () => (
     </div>
 );
 
+const AntiNotificationsPage: React.FC<{ user: User }> = ({ user }) => {
+    const [pauseAll, setPauseAll] = useState(false);
+    const [scheduledQuietTime, setScheduledQuietTime] = useState(false);
+    const [quietTimeStart, setQuietTimeStart] = useState('22:00');
+    const [quietTimeEnd, setQuietTimeEnd] = useState('08:00');
+
+    // State for individual notification types
+    const [likesEnabled, setLikesEnabled] = useState(true);
+    const [commentsEnabled, setCommentsEnabled] = useState(true);
+    const [messagesEnabled, setMessagesEnabled] = useState(true);
+    const [jobAlertsEnabled, setJobAlertsEnabled] = useState(true);
+    
+    const isTalent = user.role === UserRole.Talent;
+
+    return (
+        <>
+            <SettingsSection
+                title="Pause All"
+                footer="Temporarily stop all push notifications. You will still see new notifications when you open the app."
+            >
+                <div className="flex items-center justify-between p-4">
+                    <p className="font-semibold">Pause all notifications</p>
+                    <ToggleSwitch checked={pauseAll} onChange={setPauseAll} />
+                </div>
+            </SettingsSection>
+
+            <SettingsSection
+                title="Scheduled Quiet Time"
+                footer="Automatically mute push notifications during these hours."
+            >
+                <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800">
+                    <p className="font-semibold">Enable Quiet Time</p>
+                    <ToggleSwitch checked={scheduledQuietTime} onChange={setScheduledQuietTime} />
+                </div>
+                {scheduledQuietTime && (
+                    <div className="p-4 space-y-4">
+                        <div className="flex items-center justify-between">
+                            <label htmlFor="start-time" className="text-sm">From</label>
+                            <input
+                                id="start-time"
+                                type="time"
+                                value={quietTimeStart}
+                                onChange={(e) => setQuietTimeStart(e.target.value)}
+                                className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2 text-sm"
+                            />
+                        </div>
+                        <div className="flex items-center justify-between">
+                            <label htmlFor="end-time" className="text-sm">To</label>
+                            <input
+                                id="end-time"
+                                type="time"
+                                value={quietTimeEnd}
+                                onChange={(e) => setQuietTimeEnd(e.target.value)}
+                                className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2 text-sm"
+                            />
+                        </div>
+                    </div>
+                )}
+            </SettingsSection>
+            
+            <SettingsSection title="Choose What You're Notified About">
+                <div className="p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-800">
+                    <div>
+                        <p className="font-semibold">Likes</p>
+                        <p className="text-xs text-gray-500">When someone likes your post.</p>
+                    </div>
+                    <ToggleSwitch checked={likesEnabled} onChange={setLikesEnabled} />
+                </div>
+                <div className="p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-800">
+                    <div>
+                        <p className="font-semibold">Comments</p>
+                        <p className="text-xs text-gray-500">When someone comments on your post.</p>
+                    </div>
+                    <ToggleSwitch checked={commentsEnabled} onChange={setCommentsEnabled} />
+                </div>
+                <div className="p-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-800">
+                    <div>
+                        <p className="font-semibold">New Messages</p>
+                        <p className="text-xs text-gray-500">When you receive a new direct message.</p>
+                    </div>
+                    <ToggleSwitch checked={messagesEnabled} onChange={setMessagesEnabled} />
+                </div>
+                <div className="p-4 flex items-center justify-between">
+                    <div>
+                        <p className="font-semibold">{isTalent ? "Job Alerts & Bookings" : "Booking Updates"}</p>
+                        <p className="text-xs text-gray-500">{isTalent ? "New jobs that match your profile." : "Updates on your talent bookings."}</p>
+                    </div>
+                    <ToggleSwitch checked={jobAlertsEnabled} onChange={setJobAlertsEnabled} />
+                </div>
+            </SettingsSection>
+        </>
+    );
+};
+
+const ActivityDigestPage: React.FC<{ user: User, onUpdateProfile: (updates: Partial<User>) => void }> = ({ user, onUpdateProfile }) => {
+    const [isEnabled, setIsEnabled] = useState(user.settings?.activityDigestEnabled ?? false);
+
+    const handleToggle = (checked: boolean) => {
+        setIsEnabled(checked);
+        onUpdateProfile({ settings: { activityDigestEnabled: checked } });
+    };
+
+    return (
+        <SettingsSection
+            title="Activity Summary"
+            footer="Receive a summary of activity like profile views, new comments, and posts from people you follow, delivered up to 3 times a day."
+        >
+            <div className="flex items-center justify-between p-4">
+                <p className="font-semibold">Enable Activity Digest</p>
+                <ToggleSwitch checked={isEnabled} onChange={handleToggle} />
+            </div>
+        </SettingsSection>
+    );
+};
+
+const LocationPage: React.FC<{ user: User, onUpdateProfile: (updates: Partial<User>) => void }> = ({ user, onUpdateProfile }) => {
+    const [primaryLocation, setPrimaryLocation] = useState(user.settings?.primaryLocation || '');
+    const [jobSearchRadius, setJobSearchRadius] = useState(user.settings?.jobSearchRadius || 50);
+    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+    
+    // Sync local state with user prop when it changes to reflect updates immediately.
+    useEffect(() => {
+        setPrimaryLocation(user.settings?.primaryLocation || '');
+        setJobSearchRadius(user.settings?.jobSearchRadius || 50);
+    }, [user.settings?.primaryLocation, user.settings?.jobSearchRadius]);
+
+    const handleUseCurrentLocation = () => {
+        // Mock geolocation
+        setPrimaryLocation('Johannesburg, GP');
+    };
+
+    const handleSave = () => {
+        onUpdateProfile({ 
+            settings: { 
+                ...user.settings,
+                primaryLocation,
+                jobSearchRadius
+            } 
+        });
+        setIsSuccessModalOpen(true);
+    };
+    
+    const isTalent = user.role === UserRole.Talent;
+
+    return (
+        <>
+            <SettingsSection
+                title="Primary Location"
+                footer="Set your main location to receive more relevant job alerts and content."
+            >
+                <div className="p-4 space-y-4">
+                    <input
+                        type="text"
+                        placeholder="e.g., Sandton, Johannesburg"
+                        value={primaryLocation}
+                        onChange={(e) => setPrimaryLocation(e.target.value)}
+                        className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 outline-none"
+                    />
+                    <button 
+                        onClick={handleUseCurrentLocation}
+                        className="w-full text-sm font-bold border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 py-2 px-4 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center justify-center"
+                    >
+                        <i className="fas fa-crosshairs mr-2"></i>
+                        Use current location
+                    </button>
+                </div>
+            </SettingsSection>
+            
+            {isTalent && (
+                 <SettingsSection
+                    title="Job Search Radius"
+                    footer="Set the maximum distance for job alerts you receive."
+                >
+                    <div className="p-4">
+                        <div className="flex items-center space-x-3">
+                             <input
+                                id="radius-slider"
+                                type="range"
+                                min="5"
+                                max="100"
+                                step="5"
+                                value={jobSearchRadius}
+                                onChange={(e) => setJobSearchRadius(Number(e.target.value))}
+                                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700"
+                            />
+                            <span className="font-semibold text-sm w-24 text-right">{jobSearchRadius} km</span>
+                        </div>
+                    </div>
+                </SettingsSection>
+            )}
+
+            <div className="mt-4">
+                <button 
+                    onClick={handleSave}
+                    className="w-full border-2 border-[var(--accent-color)] bg-[var(--accent-color)] text-white font-bold py-2 px-4 rounded-lg text-sm"
+                >
+                    Save Changes
+                </button>
+            </div>
+            {isSuccessModalOpen && <SuccessModal onClose={() => setIsSuccessModalOpen(false)} />}
+        </>
+    );
+};
+
+
 // --- Main View Component ---
 
 interface SettingsSubPageViewProps {
@@ -717,7 +925,6 @@ interface SettingsSubPageViewProps {
 const SettingsSubPageView: React.FC<SettingsSubPageViewProps> = ({ user, onUpdateProfile, onLogout }) => {
     const { pageId } = useParams<{ pageId: string }>();
     const navigate = useNavigate();
-    const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
     if (!pageId || !pageIdToTitle[pageId]) {
         return <Navigate to="/settings" replace />;
@@ -743,6 +950,9 @@ const SettingsSubPageView: React.FC<SettingsSubPageViewProps> = ({ user, onUpdat
             case 'subscription': return <SubscriptionPage user={user} onUpdateProfile={onUpdateProfile} />;
             case 'privacy-policy': return <PrivacyPolicyPage />;
             case 'faq': return <FaqPage />;
+            case 'anti-notifications': return <AntiNotificationsPage user={user} />;
+            case 'activity-digest': return <ActivityDigestPage user={user} onUpdateProfile={onUpdateProfile} />;
+            case 'location': return <LocationPage user={user} onUpdateProfile={onUpdateProfile} />;
             // Add more cases for other pages here
             case 'personal-details':
             case 'contact-info-visibility':
@@ -752,7 +962,6 @@ const SettingsSubPageView: React.FC<SettingsSubPageViewProps> = ({ user, onUpdat
             case 'blocked-users':
             case 'report-history':
             case 'notifications':
-            case 'location':
             case 'saved-login-info':
             case '2fa-authenticator':
             case '2fa-sms':
@@ -770,7 +979,6 @@ const SettingsSubPageView: React.FC<SettingsSubPageViewProps> = ({ user, onUpdat
             <div className="flex-grow overflow-y-auto p-4 space-y-6">
                 {renderPageContent()}
             </div>
-            {isSuccessModalOpen && <SuccessModal onClose={() => setIsSuccessModalOpen(false)} />}
         </div>
     );
 };

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { UserRole, User, ThemeAccent } from './types';
@@ -125,11 +126,20 @@ const App: React.FC = () => {
     const handleUpdateProfile = useCallback((updates: Partial<User>) => {
         if (!currentUser) return;
 
-        const updatedUser = { ...currentUser, ...updates };
+        // Deep merge settings to avoid overwriting other preferences
+        const updatedUser = { 
+            ...currentUser, 
+            ...updates,
+            settings: {
+                ...currentUser.settings,
+                ...updates.settings,
+            },
+        };
         
         const userIndex = USERS.findIndex(u => u.email === currentUser.email);
         if (userIndex !== -1) {
-            USERS[userIndex] = { ...USERS[userIndex], ...updates };
+            // Also update the "master" user array in mockData
+            USERS[userIndex] = { ...USERS[userIndex], ...updatedUser };
         }
         
         // Update both storages if they exist, to keep sync
@@ -156,7 +166,7 @@ const App: React.FC = () => {
                             <Route path="create" element={<CreateView currentUser={currentUser} />} />
                             <Route path="reels" element={<ReelsView currentUser={currentUser} />} />
                             <Route path="profile" element={<ProfileView currentUser={currentUser} onUpdateProfile={handleUpdateProfile} />} />
-                            <Route path="settings" element={<SettingsView onLogout={handleLogout} />} />
+                            <Route path="settings" element={<SettingsView currentUser={currentUser} onLogout={handleLogout} />} />
                             <Route path="settings/:pageId" element={<SettingsSubPageView user={currentUser} onUpdateProfile={handleUpdateProfile} onLogout={handleLogout} />} />
                             <Route path="messages" element={<MessagesView />} />
                         </Route>

@@ -1,4 +1,5 @@
 
+
 import { Talent, Post, Reel, Conversation, Message, User, UserRole, Comment, LoginSession, Transaction, Job } from '../types';
 
 const getVerificationTier = (rating: number): 'gold' | 'blue' | undefined => {
@@ -913,6 +914,11 @@ export let USERS: User[] = [
         phoneNumber: '+27821234567',
         isPremium: true,
         subscriptionEndDate: getFutureDate(27), // Expires in 27 days
+        settings: {
+            activityDigestEnabled: true,
+            primaryLocation: 'Sandton, JHB',
+            jobSearchRadius: 50,
+        },
     },
     { 
         id: 'client-sarah-p',
@@ -960,6 +966,9 @@ export let USERS: User[] = [
         verificationTier: 'gold',
         isPremium: true,
         subscriptionEndDate: getFutureDate(2), // Expires in 2 days to test notification
+        settings: {
+            activityDigestEnabled: false,
+        },
     },
      ...Array.from({ length: 15 }, (_, i) => ({
         id: `client-new-${i}`,
@@ -1198,4 +1207,36 @@ export const toggleCommentLike = (commentId: string) => {
             comment.isLiked = true;
         }
     }
+};
+
+export interface ActivityDigest {
+  profileViews: { count: number; sampleViewerName: string };
+  newComments: { count: number; sampleCommenterName: string; postText: string };
+  newPosts: { samplePosterName: string };
+  gigsLanded: { sampleTalentName: string };
+}
+
+export const generateActivityDigest = (): ActivityDigest => {
+    const randomTalent1 = TALENTS[Math.floor(Math.random() * TALENTS.length)];
+    const randomTalent2 = TALENTS[Math.floor(Math.random() * TALENTS.length)];
+    const randomTalent3 = TALENTS[Math.floor(Math.random() * TALENTS.length)];
+    const randomTalent4 = TALENTS[Math.floor(Math.random() * TALENTS.length)];
+    
+    return {
+        profileViews: {
+            count: Math.floor(Math.random() * 10) + 3,
+            sampleViewerName: randomTalent1.name,
+        },
+        newComments: {
+            count: Math.floor(Math.random() * 3) + 1,
+            sampleCommenterName: randomTalent2.name,
+            postText: "your latest post",
+        },
+        newPosts: {
+            samplePosterName: randomTalent3.name,
+        },
+        gigsLanded: {
+            sampleTalentName: randomTalent4.name,
+        }
+    };
 };

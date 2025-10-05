@@ -1,4 +1,5 @@
 
+
 export enum UserRole {
   Talent = "Talent",
   Client = "Client",
@@ -90,6 +91,11 @@ export interface User {
   phoneNumber?: string;
   isPremium?: boolean;
   subscriptionEndDate?: string; 
+  settings?: {
+    activityDigestEnabled?: boolean;
+    primaryLocation?: string;
+    jobSearchRadius?: number;
+  }
 }
 
 export interface LoginSession {

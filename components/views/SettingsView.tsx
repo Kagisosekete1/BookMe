@@ -1,8 +1,11 @@
 
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { User } from '../../types';
 
 interface SettingsViewProps {
+    currentUser: User;
     onLogout: () => void;
 }
 
@@ -33,7 +36,7 @@ const SettingsItem: React.FC<{ icon: string; title: string; subtitle?: string; a
     );
 };
 
-const SettingsView: React.FC<SettingsViewProps> = ({ onLogout }) => {
+const SettingsView: React.FC<SettingsViewProps> = ({ currentUser, onLogout }) => {
     const navigate = useNavigate();
     
     return (
@@ -51,6 +54,15 @@ const SettingsView: React.FC<SettingsViewProps> = ({ onLogout }) => {
 
                 <SettingsSection title="Preferences">
                     <SettingsItem onClick={() => navigate('/settings/notifications')} icon="fa-bell" title="Notifications" isFirst />
+                    <SettingsItem onClick={() => navigate('/settings/anti-notifications')} icon="fa-bell-slash" title="Anti-notifications" subtitle="Manage quiet time and notification types." />
+                    {currentUser.isPremium && (
+                        <SettingsItem 
+                            onClick={() => navigate('/settings/activity-digest')} 
+                            icon="fa-newspaper" 
+                            title="Activity Digest" 
+                            subtitle="Get daily summaries of profile activity."
+                        />
+                    )}
                     <SettingsItem onClick={() => navigate('/settings/location')} icon="fa-map-marker-alt" title="Location" subtitle="Manage your location settings." isLast />
                 </SettingsSection>
                 

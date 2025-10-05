@@ -1,9 +1,10 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom';
 import { User } from '../../types';
 import BottomNav from './BottomNav';
-import { CONVERSATIONS, getTalentByConversation } from '../../data/mockData';
+import { CONVERSATIONS, getTalentByConversation, generateActivityDigest, ActivityDigest } from '../../data/mockData';
 
 const NotificationPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const staticNotifications = [
@@ -72,6 +73,24 @@ const NotificationPanel: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     );
 };
 
+const ActivityDigestBanner: React.FC<{ digest: ActivityDigest; onClose: () => void }> = ({ digest, onClose }) => {
+    return (
+        <div className="absolute top-12 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] z-[100] p-4 rounded-2xl bg-white/80 dark:bg-black/80 backdrop-blur-md shadow-lg border border-gray-200 dark:border-gray-800 animate-slide-down">
+            <button onClick={onClose} className="absolute top-2 right-2 w-6 h-6 bg-gray-500/20 rounded-full text-sm">&times;</button>
+            <div className="flex items-center mb-2">
+                <i className="fas fa-chart-line text-[var(--accent-color)] text-xl mr-3"></i>
+                <h3 className="font-bold text-lg">Your Activity Digest</h3>
+            </div>
+            <ul className="space-y-1.5 text-sm text-gray-700 dark:text-gray-300">
+                <li className="flex items-start"><i className="fas fa-eye w-5 text-center text-gray-400 mt-1 mr-2"></i><span><strong>{digest.profileViews.sampleViewerName}</strong> and {digest.profileViews.count - 1} others viewed your profile.</span></li>
+                <li className="flex items-start"><i className="fas fa-comment w-5 text-center text-gray-400 mt-1 mr-2"></i><span><strong>{digest.newComments.sampleCommenterName}</strong> left a new comment on {digest.newComments.postText}.</span></li>
+                <li className="flex items-start"><i className="fas fa-rss w-5 text-center text-gray-400 mt-1 mr-2"></i><span><strong>{digest.newPosts.samplePosterName}</strong> shared a new post.</span></li>
+                <li className="flex items-start"><i className="fas fa-briefcase w-5 text-center text-gray-400 mt-1 mr-2"></i><span><strong>{digest.gigsLanded.sampleTalentName}</strong> just landed a new gig!</span></li>
+            </ul>
+        </div>
+    );
+};
+
 
 interface TopBarProps {
     onBack?: () => void;
@@ -112,6 +131,43 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentUser, onLogout }) => {
     const location = useLocation();
     const navigate = useNavigate();
     const [showNotifications, setShowNotifications] = useState(false);
+    const [activityDigest, setActivityDigest] = useState<ActivityDigest | null>(null);
+
+    useEffect(() => {
+        const checkAndShowDigest = () => {
+            if (!currentUser.isPremium || !currentUser.settings?.activityDigestEnabled) {
+                return;
+            }
+
+            const now = new Date();
+            const currentHour = now.getHours();
+            
+            let currentPeriod = 0; // Morning: 00:00 - 09:59
+            if (currentHour >= 10 && currentHour < 18) {
+                currentPeriod = 1; // Afternoon: 10:00 - 17:59
+            } else if (currentHour >= 18) {
+                currentPeriod = 2; // Evening: 18:00 - 23:59
+            }
+
+            const today = now.toISOString().split('T')[0];
+            const lastDigestInfo = JSON.parse(localStorage.getItem('lastDigestInfo') || '{}');
+
+            if (lastDigestInfo.date !== today || lastDigestInfo.period < currentPeriod) {
+                const newDigest = generateActivityDigest();
+                setActivityDigest(newDigest);
+                
+                localStorage.setItem('lastDigestInfo', JSON.stringify({
+                    date: today,
+                    period: currentPeriod
+                }));
+
+                setTimeout(() => setActivityDigest(null), 10000); // Auto-dismiss
+            }
+        };
+
+        const timer = setTimeout(checkAndShowDigest, 3000); // Delay to simulate notification arrival
+        return () => clearTimeout(timer);
+    }, [currentUser]);
 
     const handleToggleNotifications = () => {
         setShowNotifications(prev => !prev);
@@ -129,7 +185,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentUser, onLogout }) => {
     const showBackButton = location.pathname.startsWith('/messages') || isSettingsPage;
                          
     return (
-        <div className="flex flex-col h-full">
+        <div className="flex flex-col h-full relative">
+            {activityDigest && <ActivityDigestBanner digest={activityDigest} onClose={() => setActivityDigest(null)} />}
             {!hideTopBar && <TopBar onBack={showBackButton ? () => navigate(-1) : undefined} onToggleNotifications={handleToggleNotifications} />}
             <main
                 className="flex-grow overflow-y-auto relative"
