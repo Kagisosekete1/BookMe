@@ -3,15 +3,29 @@ import { Link } from 'react-router-dom';
 import { POSTS, getTalentByPost, addCommentToPost, TALENTS } from '../../data/mockData';
 import { Post, User, Comment as CommentType, Reel } from '../../types';
 
+// --- Reusable Modals ---
+
+const ImageViewerModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ imageUrl, onClose }) => (
+    <div className="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[60]" onClick={onClose}>
+        <div className="relative max-w-full max-h-full p-4">
+            <img src={imageUrl} alt="Profile" className="object-contain max-w-full max-h-[90vh] rounded-lg" />
+            <button onClick={onClose} className="absolute top-4 right-4 bg-black bg-opacity-50 text-white rounded-full w-8 h-8 flex items-center justify-center">
+                <i className="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+);
+
 
 interface CommentsModalProps {
     post: Post | Reel;
     currentUser: User;
     onClose: () => void;
     onAddComment: (text: string) => void;
+    onViewImage: (url: string) => void;
 }
 
-const CommentsModal: React.FC<CommentsModalProps> = ({ post, currentUser, onClose, onAddComment }) => {
+const CommentsModal: React.FC<CommentsModalProps> = ({ post, currentUser, onClose, onAddComment, onViewImage }) => {
     const [newComment, setNewComment] = useState('');
 
     const handlePostComment = () => {
@@ -33,13 +47,9 @@ const CommentsModal: React.FC<CommentsModalProps> = ({ post, currentUser, onClos
                         const isTalent = TALENTS.some(t => t.id === comment.userId);
                         return (
                             <div key={comment.id} className="flex items-start space-x-3">
-                                {isTalent ? (
-                                    <Link to={`/talent/${comment.userId}`} onClick={onClose}>
-                                        <img src={comment.profileImage} alt={comment.user} className="w-8 h-8 rounded-full" />
-                                    </Link>
-                                ) : (
+                                <button onClick={() => onViewImage(comment.profileImage)} className="shrink-0">
                                     <img src={comment.profileImage} alt={comment.user} className="w-8 h-8 rounded-full" />
-                                )}
+                                </button>
                                 <div>
                                     <p>
                                         {isTalent ? (
@@ -124,6 +134,7 @@ interface HomeViewProps {
 
 const HomeView: React.FC<HomeViewProps> = ({ currentUser }) => {
     const [activeCommentsPost, setActiveCommentsPost] = useState<Post | null>(null);
+    const [viewerImageUrl, setViewerImageUrl] = useState<string | null>(null);
 
     const handleAddComment = (text: string) => {
         if (!activeCommentsPost) return;
@@ -146,7 +157,7 @@ const HomeView: React.FC<HomeViewProps> = ({ currentUser }) => {
 
 
     return (
-        <div className="h-full overflow-y-auto">
+        <div className="h-full overflow-y-auto relative">
             {/* Posts Feed */}
             {POSTS.map(post => <PostCard key={post.id} post={post} onOpenComments={setActiveCommentsPost}/>)}
 
@@ -156,7 +167,12 @@ const HomeView: React.FC<HomeViewProps> = ({ currentUser }) => {
                     currentUser={currentUser}
                     onClose={() => setActiveCommentsPost(null)}
                     onAddComment={handleAddComment}
+                    onViewImage={setViewerImageUrl}
                 />
+            )}
+
+            {viewerImageUrl && (
+                <ImageViewerModal imageUrl={viewerImageUrl} onClose={() => setViewerImageUrl(null)} />
             )}
         </div>
     );

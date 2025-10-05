@@ -11,18 +11,42 @@ const getVerificationIcon = (tier?: 'gold' | 'blue') => {
 
 // --- Modals and Sub-components ---
 
+interface ReportModalProps {
+    itemType: 'profile' | 'post';
+    onClose: () => void;
+    onSubmit: () => void;
+}
+const ReportModal: React.FC<ReportModalProps> = ({ itemType, onClose, onSubmit }) => {
+    const [reason, setReason] = useState('');
+    const reasons = ['Spam', 'Inappropriate Content', 'Impersonation', 'Scam or Fraud', 'Other'];
+    return (
+        <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[70]" onClick={onClose}>
+            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl p-6 w-full max-w-sm m-4" onClick={e => e.stopPropagation()}>
+                <h3 className="text-lg font-bold mb-4 text-center">Report {itemType}</h3>
+                <div className="space-y-2 mb-4">{reasons.map(r => (<label key={r} className="flex items-center"><input type="radio" name="reason" value={r} checked={reason === r} onChange={() => setReason(r)} className="h-4 w-4 text-[var(--accent-color)] focus:ring-[var(--accent-color)] border-gray-300" /><span className="ml-3 text-sm">{r}</span></label>))}</div>
+                <textarea rows={3} placeholder="Additional details (optional)..." className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-2 outline-none" />
+                <div className="mt-4 flex justify-end space-x-2">
+                    <button onClick={onClose} className="border border-gray-300 dark:border-gray-600 font-bold py-2 px-4 rounded-lg text-sm">Cancel</button>
+                    <button onClick={onSubmit} disabled={!reason} className="border bg-red-500 text-white font-bold py-2 px-4 rounded-lg text-sm disabled:opacity-50">Submit Report</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 interface PostDetailModalProps {
     post: Post;
     currentUser: User;
     onClose: () => void;
     onPostUpdate: (updatedPost: Post) => void;
+    onReport: () => void;
     onPrev: () => void;
     onNext: () => void;
     currentIndex: number;
     totalPosts: number;
 }
 
-const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, currentUser, onClose, onPostUpdate, onPrev, onNext, currentIndex, totalPosts }) => {
+const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, currentUser, onClose, onPostUpdate, onReport, onPrev, onNext, currentIndex, totalPosts }) => {
     const talent = getTalentByPost(post);
     const [isLiked, setIsLiked] = useState(false);
     const [likeCount, setLikeCount] = useState(post.likes);
@@ -59,7 +83,8 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, currentUser, on
                 <div className="flex items-center p-3 border-b border-gray-200 dark:border-gray-700">
                     <img src={talent.profileImage} alt={talent.name} className="w-10 h-10 rounded-full mr-3" />
                     <p className="font-bold flex-grow">{talent.name}</p>
-                    <button onClick={onClose} className="text-2xl">&times;</button>
+                    <button onClick={onReport} className="text-gray-500 dark:text-gray-400 w-8 h-8 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"><i className="fas fa-ellipsis-h"></i></button>
+                    <button onClick={onClose} className="text-2xl ml-2">&times;</button>
                 </div>
 
                 <div className="flex-grow overflow-y-auto">
@@ -67,9 +92,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, currentUser, on
                     <div className="p-4">
                         <p className="mb-4 text-sm">{post.text}</p>
                         <div className="flex justify-start items-center text-gray-500 dark:text-gray-400 border-t border-b border-gray-200 dark:border-gray-700 py-2 space-x-8">
-                             <button onClick={() => { setIsLiked(!isLiked); setLikeCount(p => isLiked ? p - 1 : p + 1); }} className={`flex items-center space-x-2 transition-colors ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}>
-                                <i className={`${isLiked ? 'fas' : 'far'} fa-heart`}></i><span>{likeCount}</span>
-                            </button>
+                             <button onClick={() => { setIsLiked(!isLiked); setLikeCount(p => isLiked ? p - 1 : p + 1); }} className={`flex items-center space-x-2 transition-colors ${isLiked ? 'text-red-500' : 'hover:text-red-500'}`}><i className={`${isLiked ? 'fas' : 'far'} fa-heart`}></i><span>{likeCount}</span></button>
                             <div className="flex items-center space-x-2"><i className="far fa-comment"></i><span>{post.comments.length}</span></div>
                         </div>
                     </div>
@@ -89,11 +112,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({ post, currentUser, on
                 </div>
 
                 <div className="p-2 border-t border-gray-200 dark:border-gray-700 shrink-0">
-                    <div className="flex items-center space-x-2">
-                        <img src={currentUser.profileImage} alt={currentUser.name} className="w-10 h-10 rounded-full" />
-                        <input type="text" placeholder="Add a comment..." value={newComment} onChange={(e) => setNewComment(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleAddComment()} className="w-full bg-gray-100 dark:bg-gray-800 border-none rounded-full py-2 px-4 outline-none" />
-                        <button onClick={handleAddComment} className="font-semibold text-[var(--accent-color)] hover:opacity-80 disabled:opacity-50" disabled={!newComment.trim()}>Post</button>
-                    </div>
+                    <div className="flex items-center space-x-2"><img src={currentUser.profileImage} alt={currentUser.name} className="w-10 h-10 rounded-full" /><input type="text" placeholder="Add a comment..." value={newComment} onChange={(e) => setNewComment(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleAddComment()} className="w-full bg-gray-100 dark:bg-gray-800 border-none rounded-full py-2 px-4 outline-none" /><button onClick={handleAddComment} className="font-semibold text-[var(--accent-color)] hover:opacity-80 disabled:opacity-50" disabled={!newComment.trim()}>Post</button></div>
                 </div>
             </div>
             
@@ -220,6 +239,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ currentUser, onUpdateProfile 
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [selectedPost, setSelectedPost] = useState<Post | null>(null);
     const [selectedPostIndex, setSelectedPostIndex] = useState<number | null>(null);
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     
     const userPosts = getPostsByTalentId(currentUser.talentId) || [];
     const talent = getTalentById(currentUser.talentId);
@@ -242,6 +262,12 @@ const ProfileView: React.FC<ProfileViewProps> = ({ currentUser, onUpdateProfile 
             setSelectedPostIndex(prevIndex);
             setSelectedPost(userPosts[prevIndex]);
         }
+    };
+    
+    const handleReportSubmit = () => {
+        setIsReportModalOpen(false);
+        // In a real app, you'd send the report to the backend
+        alert('Thank you. Your report has been submitted.');
     };
 
     return (
@@ -267,12 +293,14 @@ const ProfileView: React.FC<ProfileViewProps> = ({ currentUser, onUpdateProfile 
                     currentUser={currentUser}
                     onClose={() => { setSelectedPost(null); setSelectedPostIndex(null); }}
                     onPostUpdate={(updatedPost) => setSelectedPost(updatedPost)}
+                    onReport={() => setIsReportModalOpen(true)}
                     onPrev={handlePrevPost}
                     onNext={handleNextPost}
                     currentIndex={selectedPostIndex}
                     totalPosts={userPosts.length}
                 />
             )}
+            {isReportModalOpen && <ReportModal itemType="post" onClose={() => setIsReportModalOpen(false)} onSubmit={handleReportSubmit} />}
         </div>
     );
 };

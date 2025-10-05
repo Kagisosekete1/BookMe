@@ -1,11 +1,7 @@
-
-
-
-
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { useParams, Navigate, useNavigate } from 'react-router-dom';
 import { User, LoginSession, Transaction, UserRole, ThemeAccent } from '../../types';
-import { LOGIN_SESSIONS, TRANSACTIONS } from '../../data/mockData';
+import { LOGIN_SESSIONS, TRANSACTIONS, TALENTS, updateUserPassword } from '../../data/mockData';
 
 const pageIdToTitle: { [key: string]: string } = {
     'account-center': 'Account Center',
@@ -15,16 +11,31 @@ const pageIdToTitle: { [key: string]: string } = {
     'login-activity': 'Login Activity',
     'personal-details': 'Personal Details',
     'ad-preferences': 'Ad Preferences',
-    'payments': 'Payments',
+    'job-history': 'Previous Jobs',
+    'booking-history': 'Previous Talents',
     'appearance': 'Appearance',
     'change-password': 'Change Password',
     'saved-login-info': 'Saved Login Info',
     'two-factor-authentication': 'Two-Factor Authentication',
+    '2fa-authenticator': 'Authenticator App Setup',
+    '2fa-sms': 'SMS Verification Setup',
     'login-alerts': 'Login Alerts',
     'identity-confirmation': 'Identity Confirmation',
 };
 
-// Helper components for consistent styling
+// --- Reusable Components ---
+
+const Header: React.FC<{ title: string; onBack: () => void; }> = ({ title, onBack }) => (
+    <div className="flex items-center p-3 pt-12 border-b border-gray-200 dark:border-gray-800 shrink-0 h-28 bg-gray-50 dark:bg-black sticky top-0 z-10">
+        <button onClick={onBack} className="text-xl w-10 text-center shrink-0">
+            <i className="fas fa-arrow-left"></i>
+        </button>
+        <h2 className="font-bold text-xl flex items-center justify-center flex-grow pr-10">
+            {title}
+        </h2>
+    </div>
+);
+
 const SettingsSection: React.FC<{ title?: string; children: React.ReactNode; footer?: string }> = ({ title, children, footer }) => (
     <div>
         {title && <h3 className="text-xs font-bold uppercase text-gray-500 dark:text-gray-400 px-4 mb-2">{title}</h3>}
@@ -50,6 +61,12 @@ const SettingsItem: React.FC<{ icon: string; title: string; subtitle?: string; i
             {onClick && <div className="text-gray-400"><i className="fas fa-chevron-right"></i></div>}
         </div>
     );
+};
+
+const getVerificationIcon = (tier?: 'gold' | 'blue') => {
+    if (!tier) return null;
+    const color = tier === 'gold' ? 'text-yellow-500' : 'text-blue-500';
+    return <i className={`fas fa-star ${color} ml-1.5 text-xs`}></i>;
 };
 
 const ToggleItem: React.FC<{ title: string; subtitle: string; isLast?: boolean; checked?: boolean; onChange?: () => void; }> = ({ title, subtitle, isLast, checked, onChange }) => (
@@ -134,7 +151,11 @@ const AccountCenterIndexContent: React.FC<{ user: User }> = ({ user }) => {
                 <SettingsItem icon="fa-id-card" title="Personal Details" subtitle="Update your name, birthday, and contact info." onClick={() => navigate('/settings/personal-details')}/>
                 <SettingsItem icon="fa-shield-alt" title="Password and Security" subtitle="Change password, 2FA, see login activity." onClick={() => navigate('/settings/password-and-security')} />
                 <SettingsItem icon="fa-bullhorn" title="Ad Preferences" subtitle="Manage your ad topics and data settings." onClick={() => navigate('/settings/ad-preferences')} />
-                 <SettingsItem icon="fa-credit-card" title={user.role === UserRole.Talent ? "Payouts" : "Payments"} subtitle={user.role === UserRole.Talent ? "Manage payout methods and history." : "Manage booking payments and methods."} isLast onClick={() => navigate('/settings/payments')} />
+                 {user.role === UserRole.Talent ? (
+                    <SettingsItem icon="fa-history" title="Previous Jobs" subtitle="View your completed job history." isLast onClick={() => navigate('/settings/job-history')} />
+                ) : (
+                    <SettingsItem icon="fa-users" title="Previous Talents" subtitle="View talents you've booked before." isLast onClick={() => navigate('/settings/booking-history')} />
+                )}
             </SettingsSection>
             
             <p className="text-center text-xs text-gray-400 dark:text-gray-500 px-4">
@@ -276,64 +297,82 @@ const AdPreferencesContent: React.FC = () => (
     </div>
 );
 
-const TransactionHistory: React.FC<{ transactions: Transaction[] }> = ({ transactions }) => {
-    const getStatusColor = (status: Transaction['status']) => {
-        switch (status) {
-            case 'Completed': return 'text-green-500';
-            case 'Pending': return 'text-yellow-500';
-            case 'Failed': return 'text-red-500';
-            default: return 'text-gray-500';
-        }
-    };
-    return (
-        <div className="space-y-2">
-            {transactions.map(tx => (
-                <div key={tx.id} className="flex items-center p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800">
-                    <img src={tx.talentProfileImage} alt={tx.talentName} className="w-10 h-10 rounded-full mr-3" />
-                    <div className="flex-grow">
-                        <p className="font-semibold text-sm">{tx.description}</p>
-                        <p className="text-xs text-gray-500">{tx.date} · <span className={getStatusColor(tx.status)}>{tx.status}</span></p>
-                    </div>
-                    <p className={`font-bold text-sm ${tx.amount < 0 ? 'text-red-500' : 'text-green-500'}`}>
-                        {tx.amount < 0 ? '-' : '+'}R {Math.abs(tx.amount).toFixed(2)}
-                    </p>
-                </div>
-            ))}
-        </div>
-    );
-};
+const PreviousJobsContent: React.FC<{ user: User }> = ({ user }) => {
+    const completedJobs = TRANSACTIONS.filter(tx => tx.talentName === user.name && tx.amount > 0);
 
-const PaymentsContent: React.FC<{ user: User }> = ({ user }) => {
-    if (user.role === UserRole.Talent) {
-        const talentPayouts = TRANSACTIONS.filter(tx => tx.amount > 0);
+    if (completedJobs.length === 0) {
         return (
-            <div className="space-y-6">
-                <SettingsSection title="Payout Methods" footer="Your primary payout method for gigs on Book Me.">
-                     <SettingsItem icon="fa-university" title="FNB Bank Account **** 5678" subtitle="Primary" />
-                     <SettingsItem icon="fa-plus-circle" title="Add Payout Method" isLast />
-                </SettingsSection>
-                <SettingsSection title="Payout History">
-                    <TransactionHistory transactions={talentPayouts} />
-                </SettingsSection>
+            <div className="text-center text-gray-500 dark:text-gray-400 py-20">
+                <i className="fas fa-history text-4xl mb-4"></i>
+                <p>No completed jobs found.</p>
             </div>
-        )
+        );
     }
 
-    // Client View
-    const clientPayments = TRANSACTIONS.filter(tx => tx.amount < 0);
     return (
-        <div className="space-y-6">
-            <SettingsSection title="Payment Methods" footer="Your primary payment method for bookings on Book Me.">
-                 <SettingsItem icon="fa-credit-card" title="Visa **** 1234" subtitle="Primary" />
-                 <SettingsItem icon="fa-plus-circle" title="Add Payment Method" isLast />
-            </SettingsSection>
-            <SettingsSection title="Transaction History">
-                <TransactionHistory transactions={clientPayments} />
-            </SettingsSection>
-        </div>
+        <SettingsSection title="Completed Job History">
+            <div className="space-y-2">
+                {completedJobs.map(job => (
+                    <div key={job.id} className="flex items-center p-3 rounded-lg">
+                        <div className="flex items-center justify-center w-10 h-10 bg-green-100 dark:bg-green-900 rounded-full mr-3 shrink-0">
+                            <i className="fas fa-check text-green-500"></i>
+                        </div>
+                        <div className="flex-grow">
+                            <p className="font-semibold text-sm">{job.description.replace('Payout: ', '')}</p>
+                            <p className="text-xs text-gray-500">{job.date}</p>
+                        </div>
+                        <p className="font-bold text-sm text-green-500">
+                            +R {job.amount.toFixed(2)}
+                        </p>
+                    </div>
+                ))}
+            </div>
+        </SettingsSection>
     );
 };
 
+const PreviousTalentsContent: React.FC<{ onViewImage: (url: string) => void }> = ({ onViewImage }) => {
+    const navigate = useNavigate();
+    const bookedTalentsTransactions = TRANSACTIONS.filter(tx => tx.amount < 0);
+
+    const bookedTalents = useMemo(() => {
+        return bookedTalentsTransactions.map(tx => {
+            const talent = TALENTS.find(t => t.name === tx.talentName);
+            return { tx, talent };
+        }).filter(item => item.talent);
+    }, [bookedTalentsTransactions]);
+
+    if (bookedTalents.length === 0) {
+        return (
+            <div className="text-center text-gray-500 dark:text-gray-400 py-20">
+                <i className="fas fa-users text-4xl mb-4"></i>
+                <p>You haven't booked any talent yet.</p>
+            </div>
+        );
+    }
+
+    return (
+        <SettingsSection title="Previously Booked Talent">
+            <div className="space-y-1">
+                {bookedTalents.map(({ tx, talent }) => (
+                    <div key={tx.id} className="flex items-center p-3 rounded-lg">
+                        <button onClick={(e) => { e.stopPropagation(); onViewImage(talent!.profileImage); }} className="shrink-0 mr-4">
+                            <img src={talent!.profileImage} alt={talent!.name} className="w-12 h-12 rounded-full" />
+                        </button>
+                        <div onClick={() => navigate(`/talent/${talent!.id}`)} className="flex-grow cursor-pointer">
+                            <p className="font-bold text-sm flex items-center">{talent!.name} {getVerificationIcon(talent!.verificationTier)}</p>
+                            <p className="text-xs text-gray-500">{talent!.hustles[0]}</p>
+                            <p className="text-xs text-gray-400 mt-1">{`Booked on ${tx.date}`}</p>
+                        </div>
+                        <button onClick={() => navigate(`/talent/${talent!.id}`)} className="text-gray-400">
+                            <i className="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                ))}
+            </div>
+        </SettingsSection>
+    );
+};
 
 const TalentNotificationsContent: React.FC = () => {
     const [settings, setSettings] = useState({
@@ -453,14 +492,66 @@ const LoginActivityContent: React.FC = () => (
     </SettingsSection>
 );
 
-const ChangePasswordContent: React.FC = () => (
-    <div className="space-y-4">
-        <input className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3" type="password" placeholder="Current Password" />
-        <input className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3" type="password" placeholder="New Password" />
-        <input className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3" type="password" placeholder="Re-type New Password" />
-        <button className="w-full border-2 border-[var(--accent-color)] text-[var(--accent-color)] font-bold py-3 px-4 rounded-lg text-lg hover:bg-[var(--accent-color)] hover:text-white transition-colors">Update Password</button>
-    </div>
-);
+const ChangePasswordContent: React.FC<{ user: User }> = ({ user }) => {
+    const [currentPassword, setCurrentPassword] = useState('');
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+    const navigate = useNavigate();
+
+    const handleUpdate = () => {
+        setError(null);
+        setSuccess(null);
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            setError('Please fill in all fields.');
+            return;
+        }
+        if (currentPassword !== user.password) {
+            setError('Incorrect current password.');
+            return;
+        }
+        if (newPassword.length < 8) {
+             setError('New password must be at least 8 characters long.');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            setError('New passwords do not match.');
+            return;
+        }
+        if (newPassword === currentPassword) {
+            setError('New password cannot be the same as the old password.');
+            return;
+        }
+        
+        const success = updateUserPassword(user.email, newPassword);
+        if (success) {
+            setSuccess('Password updated successfully!');
+            setCurrentPassword('');
+            setNewPassword('');
+            setConfirmPassword('');
+
+            setTimeout(() => {
+                navigate(-1);
+            }, 1500);
+        } else {
+             setError('Could not update password. Please try again.');
+        }
+    };
+
+    return (
+        <div className="space-y-4">
+            {error && <div className="text-red-500 text-sm text-center p-3 bg-red-100 dark:bg-red-900/50 rounded-lg animate-fade-in">{error}</div>}
+            {success && <div className="text-green-500 text-sm text-center p-3 bg-green-100 dark:bg-green-900/50 rounded-lg animate-fade-in">{success}</div>}
+            <input value={currentPassword} onChange={e => setCurrentPassword(e.target.value)} className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3" type="password" placeholder="Current Password" />
+            <input value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3" type="password" placeholder="New Password" />
+            <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3" type="password" placeholder="Re-type New Password" />
+            <button onClick={handleUpdate} className="w-full border-2 border-[var(--accent-color)] text-[var(--accent-color)] font-bold py-3 px-4 rounded-lg text-lg hover:bg-[var(--accent-color)] hover:text-white transition-colors">Update Password</button>
+        </div>
+    );
+};
+
 
 const SavedLoginInfoContent: React.FC = () => (
     <SettingsSection title="Logged in with Book Me on this device">
@@ -474,16 +565,56 @@ const SavedLoginInfoContent: React.FC = () => (
     </SettingsSection>
 );
 
-const TwoFactorAuthContent: React.FC = () => (
-    <div className="space-y-6">
-        <div className="text-center">
-             <i className="fas fa-user-shield text-4xl text-blue-500 mb-3"></i>
-             <p className="text-gray-600 dark:text-gray-400">Two-factor authentication is an enhanced security feature. Once enabled, Book Me will require a login code in addition to your password.</p>
+const TwoFactorAuthContent: React.FC = () => {
+    const navigate = useNavigate();
+    return (
+        <div className="space-y-6">
+            <div className="text-center">
+                 <i className="fas fa-user-shield text-4xl text-blue-500 mb-3"></i>
+                 <p className="text-gray-600 dark:text-gray-400">Two-factor authentication is an enhanced security feature. Once enabled, Book Me will require a login code in addition to your password.</p>
+            </div>
+            <SettingsSection title="Select a Security Method">
+                 <SettingsItem icon="fa-mobile-alt" title="Authenticator App (Recommended)" subtitle="Get a verification code from an app like Google Authenticator or Duo." onClick={() => navigate('/settings/2fa-authenticator')} />
+                 <SettingsItem icon="fa-comment-dots" title="Text Message (SMS)" subtitle="We'll text a code to your mobile number." isLast onClick={() => navigate('/settings/2fa-sms')} />
+            </SettingsSection>
         </div>
-        <SettingsSection title="Select a Security Method">
-             <SettingsItem icon="fa-mobile-alt" title="Authenticator App (Recommended)" subtitle="Get a verification code from an app like Google Authenticator or Duo." />
-             <SettingsItem icon="fa-comment-dots" title="Text Message (SMS)" subtitle="We'll text a code to your mobile number." isLast />
+    );
+};
+
+const AuthenticatorAppSetupContent: React.FC = () => (
+    <div className="space-y-6">
+        <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+            <p>Use an authenticator app like Google Authenticator to scan the QR code. Enter the 6-digit code generated by your app to complete setup.</p>
+        </div>
+        <div className="p-4 bg-white dark:bg-gray-800 rounded-lg flex items-center justify-center">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=otpauth://totp/BookMe:user@book.me?secret=JBSWY3DPEHPK3PXP&issuer=BookMe" alt="QR Code" className="rounded-md" />
+        </div>
+        <SettingsSection title="Or enter setup key manually">
+            <div className="p-4">
+                <p className="text-center font-mono tracking-widest bg-gray-100 dark:bg-gray-900 p-3 rounded-lg">JBSW Y3DP EHPK 3PXP</p>
+            </div>
         </SettingsSection>
+        <div className="space-y-2">
+            <input className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 text-center tracking-[0.5em]" maxLength={6} placeholder="123456" />
+            <button className="w-full border-2 border-[var(--accent-color)] text-[var(--accent-color)] font-bold py-3 px-4 rounded-lg text-lg hover:bg-[var(--accent-color)] hover:text-white transition-colors">Verify & Activate</button>
+        </div>
+    </div>
+);
+
+const SmsSetupContent: React.FC<{ user: User }> = ({ user }) => (
+    <div className="space-y-6">
+         <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+            <p>We will send a verification code to your phone number to complete the setup.</p>
+        </div>
+        <SettingsSection>
+            <div className="p-4">
+                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Phone Number</label>
+                 <input type="tel" defaultValue={user.phoneNumber || ''} placeholder="+27 82 123 4567" className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 outline-none" />
+            </div>
+        </SettingsSection>
+        <div className="space-y-2">
+            <button className="w-full border-2 border-[var(--accent-color)] text-[var(--accent-color)] font-bold py-3 px-4 rounded-lg text-lg hover:bg-[var(--accent-color)] hover:text-white transition-colors">Send Code</button>
+        </div>
     </div>
 );
 
@@ -560,6 +691,14 @@ const BlueBadgeSubscriptionModal: React.FC<{ onClose: () => void }> = ({ onClose
     );
 };
 
+const ImageViewerModal: React.FC<{ imageUrl: string; onClose: () => void }> = ({ imageUrl, onClose }) => (
+    <div className="absolute inset-0 bg-black bg-opacity-80 flex items-center justify-center z-[60]" onClick={onClose}>
+        <div className="relative max-w-full max-h-full p-4">
+            <img src={imageUrl} alt="Profile" className="object-contain max-w-full max-h-[90vh] rounded-lg" />
+        </div>
+    </div>
+);
+
 
 interface SettingsSubPageProps {
     user: User | null;
@@ -572,9 +711,11 @@ interface SettingsSubPageProps {
 
 const SettingsSubPageView: React.FC<SettingsSubPageProps> = ({ user, onUpdateProfile, theme, onSetTheme, themeAccent, onSetThemeAccent }) => {
     const { pageId } = useParams<{ pageId: string }>();
+    const navigate = useNavigate();
     const [isDobModalOpen, setIsDobModalOpen] = useState(false);
     const [isPhoneModalOpen, setIsPhoneModalOpen] = useState(false);
     const [isBlueBadgeModalOpen, setIsBlueBadgeModalOpen] = useState(false);
+    const [viewerImageUrl, setViewerImageUrl] = useState<string | null>(null);
 
     // State for Identity Confirmation
     const [documentType, setDocumentType] = useState<'id' | 'passport'>('id');
@@ -598,9 +739,7 @@ const SettingsSubPageView: React.FC<SettingsSubPageProps> = ({ user, onUpdatePro
     if (!pageId || !pageIdToTitle[pageId]) return <Navigate to="/settings" replace />;
     if (!user) return <Navigate to="/" replace />;
 
-    const title = pageId === 'payments' 
-        ? (user.role === UserRole.Talent ? 'Payouts' : 'Payments')
-        : pageIdToTitle[pageId];
+    const title = pageIdToTitle[pageId];
 
     const renderContent = () => {
         switch (pageId) {
@@ -636,14 +775,20 @@ const SettingsSubPageView: React.FC<SettingsSubPageProps> = ({ user, onUpdatePro
                 );
             case 'ad-preferences':
                 return <AdPreferencesContent />;
-            case 'payments':
-                return <PaymentsContent user={user} />;
+            case 'job-history':
+                return <PreviousJobsContent user={user} />;
+            case 'booking-history':
+                return <PreviousTalentsContent onViewImage={setViewerImageUrl} />;
             case 'change-password':
-                return <ChangePasswordContent />;
+                return <ChangePasswordContent user={user} />;
             case 'saved-login-info':
                 return <SavedLoginInfoContent />;
             case 'two-factor-authentication':
                 return <TwoFactorAuthContent />;
+            case '2fa-authenticator':
+                return <AuthenticatorAppSetupContent />;
+            case '2fa-sms':
+                return <SmsSetupContent user={user} />;
             case 'login-alerts':
                 return <LoginAlertsContent />;
             default:
@@ -657,12 +802,15 @@ const SettingsSubPageView: React.FC<SettingsSubPageProps> = ({ user, onUpdatePro
     };
 
     return (
-        <div className="p-4 h-full overflow-y-auto bg-gray-50 dark:bg-black relative">
-            <h2 className="text-xl font-bold mb-6 px-4">{title}</h2>
-            {renderContent()}
+        <div className="h-full flex flex-col bg-gray-50 dark:bg-black">
+            <Header title={title} onBack={() => navigate(-1)} />
+            <div className="flex-grow overflow-y-auto p-4 relative">
+                {renderContent()}
+            </div>
             {isDobModalOpen && <EditDateOfBirthModal onClose={() => setIsDobModalOpen(false)} />}
             {isPhoneModalOpen && <EditPhoneNumberModal user={user} onClose={() => setIsPhoneModalOpen(false)} onUpdateProfile={onUpdateProfile} />}
             {isBlueBadgeModalOpen && <BlueBadgeSubscriptionModal onClose={() => setIsBlueBadgeModalOpen(false)} />}
+            {viewerImageUrl && <ImageViewerModal imageUrl={viewerImageUrl} onClose={() => setViewerImageUrl(null)} />}
         </div>
     );
 };

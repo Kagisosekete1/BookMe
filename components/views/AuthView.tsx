@@ -21,6 +21,119 @@ interface AuthViewProps {
 const secondaryButtonClass = "w-full border-2 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 font-bold py-3 px-4 rounded-lg text-lg mb-4 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors";
 const primaryButtonClass = "w-full border-2 border-[var(--accent-color)] text-[var(--accent-color)] font-bold py-3 px-4 rounded-lg text-lg mb-4 hover:bg-[var(--accent-color)] hover:text-white transition-colors";
 
+const TermsOfUseModal: React.FC<{ onClose: () => void }> = ({ onClose }) => (
+    <div className="absolute inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 animate-fade-in" onClick={onClose}>
+        <div className="bg-white dark:bg-gray-900 rounded-xl shadow-xl w-full max-w-lg m-4 max-h-[85%] flex flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 shrink-0">
+                <h3 className="text-lg font-bold">Terms of Use</h3>
+                <button onClick={onClose} className="text-gray-500 hover:text-black dark:hover:text-white text-xl w-8 h-8 rounded-full flex items-center justify-center">
+                    <i className="fas fa-times"></i>
+                </button>
+            </div>
+            <div className="flex-grow overflow-y-auto p-6 text-sm text-gray-700 dark:text-gray-300 space-y-4">
+                <h4 className="font-bold text-lg text-black dark:text-white">Book Me App — Terms of Use</h4>
+                <p className="text-xs text-gray-500">
+                    <strong>Effective Date:</strong> October 2025<br />
+                    <strong>Last Updated:</strong> October 5, 2025
+                </p>
+                <p>Welcome to Book Me App, a platform powered by SE-MO Group (Pty) Ltd, designed to connect independent creatives, service providers, and clients for easy and secure bookings. By accessing or using Book Me App (“the App,” “we,” “us,” or “our”), you agree to these Terms of Use (“Terms”).</p>
+                <p>If you do not agree, please do not use the App.</p>
+
+                <h5 className="font-bold text-black dark:text-white pt-2">1. Overview</h5>
+                <p>Book Me App allows users (“Users”) to:</p>
+                <ul className="list-disc list-inside space-y-1 pl-4">
+                    <li>Create profiles as Service Providers (artists, DJs, caterers, stylists, etc.) or Clients (those looking to book someone).</li>
+                    <li>Share images, videos, posts, and reels.</li>
+                    <li>Manage and receive bookings directly through the App.</li>
+                </ul>
+                <p>These Terms govern your use of all services, features, and content offered through the App.</p>
+
+                <h5 className="font-bold text-black dark:text-white pt-2">2. Eligibility</h5>
+                <ul className="list-disc list-inside space-y-1 pl-4">
+                    <li>You must be at least 16 years old to use Book Me App.</li>
+                    <li>If you are using the App on behalf of a business or organization, you represent that you have the authority to bind that entity to these Terms.</li>
+                </ul>
+
+                <h5 className="font-bold text-black dark:text-white pt-2">3. Account Registration</h5>
+                <ul className="list-disc list-inside space-y-1 pl-4">
+                    <li>You may register using a valid email or phone number.</li>
+                    <li>You agree to provide accurate and up-to-date information during registration.</li>
+                    <li>You are responsible for maintaining the confidentiality of your login credentials.</li>
+                    <li>Book Me App is not responsible for any loss or damage resulting from unauthorized access to your account.</li>
+                </ul>
+
+                <h5 className="font-bold text-black dark:text-white pt-2">4. User Conduct</h5>
+                <p>You agree not to:</p>
+                <ul className="list-disc list-inside space-y-1 pl-4">
+                    <li>Post or share any illegal, harmful, or misleading content.</li>
+                    <li>Impersonate another person or misrepresent your identity.</li>
+                    <li>Use the platform for fraud, scams, or deceptive activities.</li>
+                    <li>Harass, abuse, or threaten others.</li>
+                    <li>Violate any applicable laws or regulations.</li>
+                </ul>
+                <p>We reserve the right to suspend or terminate accounts violating these rules.</p>
+                
+                <h5 className="font-bold text-black dark:text-white pt-2">5. Bookings and Payments</h5>
+                <ul className="list-disc list-inside space-y-1 pl-4">
+                    <li>All bookings and transactions are made directly between users.</li>
+                    <li>SE-MO Group is not responsible for disputes, cancellations, or service quality.</li>
+                    <li>Service Providers are solely responsible for the accuracy of their listings, pricing, and availability.</li>
+                    <li>Clients are responsible for verifying the credentials and reliability of Service Providers before booking.</li>
+                </ul>
+                
+                <h5 className="font-bold text-black dark:text-white pt-2">6. Content Ownership</h5>
+                 <p>You retain ownership of the content you post, but by uploading it, you grant Book Me App a non-exclusive, worldwide, royalty-free license to display, promote, and distribute your content within the App and its marketing materials.</p>
+                 <p>You may delete your content at any time.</p>
+
+                <h5 className="font-bold text-black dark:text-white pt-2">7. Reporting, Blocking, and Safety</h5>
+                <p>Users may report or block others for inappropriate behavior, scams, or misuse.</p>
+                <p>Book Me App reserves the right to investigate and take action, including removal or suspension of accounts.</p>
+                <p>However, we do not guarantee that all reported content will be immediately reviewed or removed.</p>
+
+                <h5 className="font-bold text-black dark:text-white pt-2">8. Privacy</h5>
+                <p>Your privacy is important to us. Our data collection, use, and protection practices are outlined in our Privacy Policy (available on <a href="http://www.se-mogroup.com" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-color)] underline">www.se-mogroup.com</a>).</p>
+
+                <h5 className="font-bold text-black dark:text-white pt-2">9. Reels and Media Content</h5>
+                <p>Users may upload videos (“Reels”) and photos to showcase their work or services. You are fully responsible for the content shared and must ensure it complies with our community guidelines and all applicable laws.</p>
+                <p>We reserve the right to remove any content violating these Terms.</p>
+
+                <h5 className="font-bold text-black dark:text-white pt-2">10. Intellectual Property</h5>
+                <p>All content, logos, trademarks, and software associated with Book Me App remain the property of SE-MO Group (Pty) Ltd. Unauthorized use, copying, or redistribution is strictly prohibited.</p>
+
+                <h5 className="font-bold text-black dark:text-white pt-2">11. Termination</h5>
+                <p>We may suspend or terminate your access to the App if:</p>
+                <ul className="list-disc list-inside space-y-1 pl-4">
+                    <li>You violate these Terms.</li>
+                    <li>Your activity poses a security or legal risk.</li>
+                    <li>Required by law or government order.</li>
+                </ul>
+                <p>You may delete your account at any time by contacting us at <a href="mailto:info@se-mogroup.com" className="text-[var(--accent-color)] underline">info@se-mogroup.com</a>.</p>
+
+                <h5 className="font-bold text-black dark:text-white pt-2">12. Disclaimer of Warranties</h5>
+                <p>Book Me App is provided “as is” and “as available.” We make no warranties or guarantees about:</p>
+                 <ul className="list-disc list-inside space-y-1 pl-4">
+                    <li>The accuracy or availability of any service listings.</li>
+                    <li>The reliability of any user.</li>
+                    <li>Continuous or error-free operation of the App.</li>
+                </ul>
+                <p>You use the App at your own risk.</p>
+
+                <h5 className="font-bold text-black dark:text-white pt-2">13. Limitation of Liability</h5>
+                <p>SE-MO Group and its affiliates are not liable for any indirect, incidental, special, or consequential damages arising from your use of Book Me App, including loss of data, revenue, or reputation.</p>
+
+                <h5 className="font-bold text-black dark:text-white pt-2">14. Changes to Terms</h5>
+                <p>We may update these Terms periodically. Continued use of the App after any changes constitutes your acceptance of the revised Terms.</p>
+
+                <h5 className="font-bold text-black dark:text-white pt-2">15. Contact Us</h5>
+                <p>For any questions or concerns regarding these Terms, please contact us at:</p>
+                <p>📧 <a href="mailto:info@se-mogroup.com" className="text-[var(--accent-color)] underline">info@se-mogroup.com</a></p>
+                <p>🌐 <a href="http://www.se-mogroup.com" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-color)] underline">www.se-mogroup.com</a></p>
+
+            </div>
+        </div>
+    </div>
+);
+
 
 const RoleSelectionScreen: React.FC<{ onSelect: (role: UserRole) => void }> = ({ onSelect }) => (
     <div className="w-full max-w-sm text-center">
@@ -59,10 +172,42 @@ const validateEmail = (email: string) => {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email).toLowerCase());
 };
 
+const validatePassword = (password: string): string | null => {
+    if (password.length < 8) return "Password must be at least 8 characters long.";
+    if (!/[a-z]/.test(password)) return "Password must contain at least one lowercase letter.";
+    if (!/[A-Z]/.test(password)) return "Password must contain at least one uppercase letter.";
+    if (!/[0-9]/.test(password)) return "Password must contain at least one number.";
+    if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/.test(password)) return "Password must contain at least one special character.";
+    return null;
+};
+
+const PasswordRequirements: React.FC<{password: string}> = ({ password }) => {
+    const checks = [
+        { regex: /.{8,}/, text: "At least 8 characters" },
+        { regex: /[a-z]/, text: "One lowercase letter" },
+        { regex: /[A-Z]/, text: "One uppercase letter" },
+        { regex: /[0-9]/, text: "One number" },
+        { regex: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]+/, text: "One special character" },
+    ];
+
+    return (
+        <div className="text-xs space-y-1.5 my-3 px-1">
+            {checks.map((check, i) => (
+                <div key={i} className={`flex items-center transition-colors ${check.regex.test(password) ? 'text-green-500' : 'text-gray-400 dark:text-gray-500'}`}>
+                    <i className={`fas ${check.regex.test(password) ? 'fa-check-circle' : 'fa-times-circle'} mr-2 w-4 text-center`}></i>
+                    <span>{check.text}</span>
+                </div>
+            ))}
+        </div>
+    );
+};
+
+
 const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
   const navigate = useNavigate();
   const [authState, setAuthState] = useState<AuthState>(AuthState.RoleSelection);
   const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
+  const [isTermsModalOpen, setIsTermsModalOpen] = useState(false);
   
   // Form State
   const [email, setEmail] = useState('');
@@ -154,6 +299,11 @@ const AuthView: React.FC<AuthViewProps> = ({ onLogin }) => {
     }
     if (!validateEmail(email)) {
         setError('Please enter a valid email address.');
+        return;
+    }
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+        setError(passwordError);
         return;
     }
     if (password !== confirmPassword) {
@@ -264,15 +414,16 @@ const handleResetPassword = () => {
         setError("Please fill in both password fields.");
         return;
     }
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+        setError(passwordError);
+        return;
+    }
     if (password !== confirmPassword) {
         setError("Passwords do not match.");
         return;
     }
-    if (password.length < 6) {
-        setError("Password must be at least 6 characters long.");
-        return;
-    }
-
+    
     const success = updateUserPassword(email, password);
     if (success) {
         changeAuthState(AuthState.Login, { 
@@ -306,7 +457,10 @@ const handleResetPassword = () => {
               <button onClick={() => changeAuthState(AuthState.ForgotPassword, { keepEmail: true })} className="text-sm text-gray-500 hover:underline">Forgot Password?</button>
             </div>
             <button onClick={handleLoginAttempt} className={primaryButtonClass}>Login</button>
-            <p className="text-center mt-12 text-sm text-gray-500">Don't have an account? <button onClick={() => changeAuthState(AuthState.Signup)} className="font-bold text-black dark:text-white hover:underline">Sign Up</button></p>
+            <p className="text-center text-xs text-gray-400 mt-6">
+                By logging in, you agree to our <button onClick={() => setIsTermsModalOpen(true)} className="font-semibold underline hover:text-black dark:hover:text-white">Terms of Use</button>.
+            </p>
+            <p className="text-center mt-4 text-sm text-gray-500">Don't have an account? <button onClick={() => changeAuthState(AuthState.Signup)} className="font-bold text-black dark:text-white hover:underline">Sign Up</button></p>
           </div>
         );
       case AuthState.Signup:
@@ -317,10 +471,14 @@ const handleResetPassword = () => {
             {errorDisplay}
             <input value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-4" type="text" placeholder="Full Name" />
             <input value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-4" type="email" placeholder="Email" />
-            <input value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-4" type="password" placeholder="Password" />
+            <input value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3" type="password" placeholder="Password" />
+            <PasswordRequirements password={password} />
             <input value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-4" type="password" placeholder="Confirm Password" />
             <button onClick={handleSignupAttempt} className={primaryButtonClass}>Sign Up</button>
-            <p className="text-center mt-6 text-sm text-gray-500">Already have an account? <button onClick={() => changeAuthState(AuthState.Login)} className="font-bold text-black dark:text-white hover:underline">Login</button></p>
+             <p className="text-center text-xs text-gray-400 mt-6">
+                By signing up, you agree to our <button onClick={() => setIsTermsModalOpen(true)} className="font-semibold underline hover:text-black dark:hover:text-white">Terms of Use</button>.
+            </p>
+            <p className="text-center mt-4 text-sm text-gray-500">Already have an account? <button onClick={() => changeAuthState(AuthState.Login)} className="font-bold text-black dark:text-white hover:underline">Login</button></p>
           </div>
         );
       case AuthState.PhoneInput:
@@ -371,7 +529,8 @@ const handleResetPassword = () => {
             <h2 className="text-2xl font-bold text-center mb-2">Reset Password</h2>
             <p className="text-center text-gray-500 dark:text-gray-400 mb-6">Create a new strong password for your account.</p>
             {errorDisplay}
-            <input value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-4" type="password" placeholder="New Password" />
+            <input value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3" type="password" placeholder="New Password" />
+            <PasswordRequirements password={password} />
             <input value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} className="w-full bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg p-3 mb-4" type="password" placeholder="Confirm New Password" />
             <button onClick={handleResetPassword} className={primaryButtonClass}>Reset Password</button>
           </>
@@ -385,6 +544,7 @@ const handleResetPassword = () => {
 
   return (
     <div className="h-full relative overflow-hidden">
+        {isTermsModalOpen && <TermsOfUseModal onClose={() => setIsTermsModalOpen(false)} />}
         <div 
             className="absolute top-0 left-0 w-[200%] h-full flex transition-transform duration-500 ease-in-out"
             style={{ transform: `translateX(${isRoleSelected ? '-50%' : '0%'})` }}

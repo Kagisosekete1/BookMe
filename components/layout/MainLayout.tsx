@@ -1,3 +1,5 @@
+
+
 import React, { useState } from 'react';
 import { Outlet, useLocation, useNavigate, Link } from 'react-router-dom';
 import { User } from '../../types';
@@ -116,11 +118,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ currentUser, onLogout }) => {
         setShowNotifications(prev => !prev);
     };
 
-    const showBackButton = location.pathname.startsWith('/talent/') || 
-                         location.pathname.startsWith('/messages') || 
-                         location.pathname.startsWith('/settings');
+    const showBackButton = location.pathname.startsWith('/messages') || location.pathname === '/settings';
                          
-    const hideTopBar = location.pathname === '/profile';
+    const isSettingsSubPage = /^\/settings\/.+/.test(location.pathname);
+    const hideTopBar = location.pathname === '/profile' ||
+                       location.pathname.startsWith('/talent/') ||
+                       isSettingsSubPage;
     
     return (
         <div className="flex flex-col h-full">
